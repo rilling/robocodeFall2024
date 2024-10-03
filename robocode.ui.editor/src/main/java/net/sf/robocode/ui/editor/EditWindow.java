@@ -40,6 +40,8 @@ import java.util.StringTokenizer;
 @SuppressWarnings("serial")
 public class EditWindow extends JInternalFrame {
 
+	private static final String EXTENSION_JAVA = ".java";
+
 	private String fileName;
 	private String robotName;
 	public boolean modified;
@@ -335,11 +337,11 @@ public class EditWindow extends JInternalFrame {
 				if (pEIndex2 > 0 && pEIndex2 < pEIndex) {
 					pEIndex = pEIndex2;
 				}
-				javaFileName = text.substring(pIndex + 13, pEIndex).trim() + ".java";
+				javaFileName = text.substring(pIndex + 13, pEIndex).trim() + EXTENSION_JAVA;
 			} else {
 				pEIndex = text.indexOf("\n", pIndex + 13);
 				if (pEIndex > 0) {
-					javaFileName = text.substring(pIndex + 13, pEIndex).trim() + ".java";
+					javaFileName = text.substring(pIndex + 13, pEIndex).trim() + EXTENSION_JAVA;
 				}
 			}
 		}
@@ -382,7 +384,7 @@ public class EditWindow extends JInternalFrame {
 				if (idx >= 0) {
 					extension = fn.substring(idx);
 				}
-				return extension.equalsIgnoreCase(".java");
+				return extension.equalsIgnoreCase(EXTENSION_JAVA);
 			}
 
 			@Override
@@ -476,7 +478,7 @@ public class EditWindow extends JInternalFrame {
 				fileName.append(packageTree);
 			}
 			if (token.equals("class")) {
-				javaFileName = tokenizer.nextToken() + ".java";
+				javaFileName = tokenizer.nextToken() + EXTENSION_JAVA;
 				fileName.append(javaFileName);
 				return fileName.toString();
 			}
