@@ -28,12 +28,12 @@ import java.util.UUID;
 public class BattleRecordInfo implements Serializable, IXmlSerializable {
 	private static final long serialVersionUID = 2L;
 
-	public int robotCount;
-	public int roundsCount;
-	public BattleRules battleRules;
-	public Integer[] turnsInRounds;
-	public List<BattleResults> results;
-	public UUID battleId;
+	private int robotCount;
+	private int roundsCount;
+	private BattleRules battleRules;
+	private Integer[] turnsInRounds;
+	private List<BattleResults> results;
+	private UUID battleId;
 
 	public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
 		writer.startElement("recordInfo"); {
@@ -326,4 +326,51 @@ public class BattleRecordInfo implements Serializable, IXmlSerializable {
 		}
 	}
 
+	public int getRobotCount() {
+		return robotCount;
+	}
+
+	public void setRobotCount(int robotCount) {
+		this.robotCount = robotCount;
+	}
+
+	public int getRoundsCount() {
+		return roundsCount;
+	}
+
+	public void setRoundsCount(int roundsCount) {
+		this.roundsCount = roundsCount;
+	}
+
+	public BattleRules getBattleRules() {
+		return battleRules;
+	}
+
+	public void setBattleRules(BattleRules battleRules) {
+		this.battleRules = battleRules;
+	}
+
+	public Integer[] getTurnsInRounds() {
+		return turnsInRounds;
+	}
+
+	public void setTurnsInRounds(Integer[] turnsInRounds) {
+		this.turnsInRounds = turnsInRounds;
+	}
+
+	public List<BattleResults> getResults() {
+		return results;
+	}
+
+	public void setResults(List<BattleResults> results) {
+		this.results = results;
+	}
+
+	public UUID getBattleId() {
+		return battleId;
+	}
+
+	public void setBattleId(UUID battleId) {
+		this.battleId = battleId;
+	}
 }

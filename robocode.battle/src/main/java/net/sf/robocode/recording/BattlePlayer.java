@@ -42,9 +42,9 @@ public final class BattlePlayer extends BaseBattle {
 
 		recordManager.prepareInputStream();
 
-		battleRules = recordManager.recordInfo.battleRules;
-		paint = new boolean[recordManager.recordInfo.robotCount];
-		eventDispatcher.onBattleStarted(new BattleStartedEvent(battleRules, recordManager.recordInfo.robotCount, true, recordManager.recordInfo.battleId));
+		battleRules = recordManager.recordInfo.getBattleRules();
+		paint = new boolean[recordManager.recordInfo.getRobotCount()];
+		eventDispatcher.onBattleStarted(new BattleStartedEvent(battleRules, recordManager.recordInfo.getRobotCount(), true, recordManager.recordInfo.getBattleId()));
 		if (isPaused) {
 			eventDispatcher.onBattlePaused(new BattlePausedEvent());
 		}
@@ -52,12 +52,12 @@ public final class BattlePlayer extends BaseBattle {
 
 	@Override
 	protected void finalizeBattle() {
-		boolean aborted = recordManager.recordInfo.results == null || isAborted();
+		boolean aborted = recordManager.recordInfo.getResults() == null || isAborted();
 
 		eventDispatcher.onBattleFinished(new BattleFinishedEvent(aborted));
 
 		if (!aborted) {
-			final List<BattleResults> res = recordManager.recordInfo.results;
+			final List<BattleResults> res = recordManager.recordInfo.getResults();
 
 			eventDispatcher.onBattleCompleted(
 					new BattleCompletedEvent(battleRules, res.toArray(new BattleResults[res.size()])));
@@ -113,11 +113,11 @@ public final class BattlePlayer extends BaseBattle {
 
 	@Override
 	protected boolean isRoundOver() {
-		final boolean end = getTime() >= recordManager.recordInfo.turnsInRounds[getRoundNum()] - 1;
+		final boolean end = getTime() >= recordManager.recordInfo.getTurnsInRounds()[getRoundNum()] - 1;
 
 		if (end) {
-			if (recordManager.recordInfo.turnsInRounds.length > getRoundNum()
-					&& recordManager.recordInfo.turnsInRounds[getRoundNum()] == 0) {
+			if (recordManager.recordInfo.getTurnsInRounds().length > getRoundNum()
+					&& recordManager.recordInfo.getTurnsInRounds()[getRoundNum()] == 0) {
 				isAborted = true;
 			}
 		}
