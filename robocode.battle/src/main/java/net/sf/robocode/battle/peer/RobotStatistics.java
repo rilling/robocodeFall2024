@@ -253,6 +253,10 @@ public class RobotStatistics implements ContestantStatistics {
 			case 2:
 				totalThirds++;
 				break;
+
+				default:
+					System.out.println("Unexpected enemiesRemaining");
+					break;
 			}
 		}
 	}
