@@ -120,12 +120,12 @@ public class RecordManager implements IRecordManager {
                     Logger.logError("Could not delete temp file");
                 }
                 if (!tempFile.createNewFile()) {
-                    throw new Error("Temp file creation failed");
+                    throw new IOException("Temp file creation failed");
                 }
             }
         } catch (IOException e) {
             logError(e);
-            throw new Error("Temp file creation failed", e);
+            throw new RuntimeException("Temp file creation failed", e);
         }
     }
 
@@ -580,7 +580,7 @@ public class RecordManager implements IRecordManager {
                         TurnSnapshot turn = (TurnSnapshot) ois.readObject();
 
                         if (j != turn.getTurn()) {
-                            throw new Error("Something rotten");
+                            throw new IllegalStateException("Something rotten");
                         }
 
                         writeTurn.accept(turn);
@@ -627,7 +627,7 @@ public class RecordManager implements IRecordManager {
     void writeTurn(ITurnSnapshot turn, int round, int time) {
         try {
             if (time != recordInfo.turnsInRounds[round]) {
-                throw new Error("Something rotten");
+                throw new IllegalStateException("Something rotten");
             }
             if (time == 0) {
                 objectWriteStream.reset();
