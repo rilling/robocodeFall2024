@@ -67,14 +67,6 @@ public class RecordManager implements IRecordManager {
         this.versionManager = versionManager;
     }
 
-    protected void finalize() throws Throwable {
-        try {
-            cleanup();
-        } finally {
-            super.finalize();
-        }
-    }
-
     private void cleanup() {
         cleanupStreams();
         if (tempFile != null && tempFile.exists()) {
