@@ -42,8 +42,8 @@ import java.util.zip.ZipOutputStream;
  * @author Pavel Savara (original)
  */
 public class RecordManager implements IRecordManager {
-    protected static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
-    protected static final Calendar calendar = Calendar.getInstance();
+    protected final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    protected final Calendar calendar = Calendar.getInstance();
     protected static final Charset utf8 = StandardCharsets.UTF_8;
 
     protected final ISettingsManager properties;
