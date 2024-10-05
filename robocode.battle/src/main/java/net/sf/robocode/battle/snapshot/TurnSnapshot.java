@@ -64,8 +64,8 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	 *                    {@code false} otherwise.
 	 */
 	public TurnSnapshot(Battle battle, List<RobotPeer> battleRobots, List<BulletPeer> battleBullets, boolean readoutText) {
-		robots = new ArrayList<IRobotSnapshot>();
-		bullets = new ArrayList<IBulletSnapshot>();
+		robots = new ArrayList<>();
+		bullets = new ArrayList<>();
 
 		for (RobotPeer robotPeer : battleRobots) {
 			robots.add(new RobotSnapshot(robotPeer, readoutText));
@@ -124,7 +124,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	 * {@inheritDoc}
 	 */
 	public IScoreSnapshot[] getSortedTeamScores() {
-		List<IScoreSnapshot> copy = new ArrayList<IScoreSnapshot>(Arrays.asList(getIndexedTeamScores()));
+		List<IScoreSnapshot> copy = new ArrayList<>(Arrays.asList(getIndexedTeamScores()));
 
 		Collections.sort(copy);
 		Collections.reverse(copy);
@@ -137,7 +137,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	public IScoreSnapshot[] getIndexedTeamScores() {
 		// team scores are computed on demand from team scores to not duplicate data in the snapshot
 
-		List<IScoreSnapshot> results = new ArrayList<IScoreSnapshot>();
+		List<IScoreSnapshot> results = new ArrayList<>();
 
 		// noinspection ForLoopReplaceableByForEach
 		for (int i = 0; i < robots.size(); i++) {
@@ -153,7 +153,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 			results.set(contestantIndex, score);
 		}
-		List<IScoreSnapshot> scores = new ArrayList<IScoreSnapshot>();
+		List<IScoreSnapshot> scores = new ArrayList<>();
 
 		for (IScoreSnapshot scoreSnapshot : results) {
 			if (scoreSnapshot != null) {
@@ -248,7 +248,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 				reader.expect("robots", "rs", new XmlReader.ListElement() {
 					public IXmlSerializable read(XmlReader reader) {
-						snapshot.robots = new ArrayList<IRobotSnapshot>();
+						snapshot.robots = new ArrayList<>();
 						// prototype
 						return new RobotSnapshot();
 					}
@@ -278,7 +278,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 				reader.expect("bullets", "bs", new XmlReader.ListElement() {
 					public IXmlSerializable read(XmlReader reader) {
-						snapshot.bullets = new ArrayList<IBulletSnapshot>();
+						snapshot.bullets = new ArrayList<>();
 						// prototype
 						return new BulletSnapshot();
 					}

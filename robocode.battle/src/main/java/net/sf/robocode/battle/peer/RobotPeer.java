@@ -85,12 +85,12 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	private final TeamPeer teamPeer;
 
 	private IHostingRobotProxy robotProxy;
-	private AtomicReference<RobotStatus> status = new AtomicReference<RobotStatus>();
-	private AtomicReference<ExecCommands> commands = new AtomicReference<ExecCommands>();
-	private AtomicReference<EventQueue> events = new AtomicReference<EventQueue>(new EventQueue());
-	private AtomicReference<List<TeamMessage>> teamMessages = new AtomicReference<List<TeamMessage>>(
+	private AtomicReference<RobotStatus> status = new AtomicReference<>();
+	private AtomicReference<ExecCommands> commands = new AtomicReference<>();
+	private AtomicReference<EventQueue> events = new AtomicReference<>(new EventQueue());
+	private AtomicReference<List<TeamMessage>> teamMessages = new AtomicReference<>(
 			new ArrayList<TeamMessage>());
-	private AtomicReference<List<BulletStatus>> bulletUpdates = new AtomicReference<List<BulletStatus>>(
+	private AtomicReference<List<BulletStatus>> bulletUpdates = new AtomicReference<>(
 			new ArrayList<BulletStatus>());
 
 	// thread is running
@@ -760,7 +760,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		lastExecutionTime = -1;
 
-		status = new AtomicReference<RobotStatus>();
+		status = new AtomicReference<>();
 
 		readoutEvents();
 		readoutTeamMessages();
@@ -776,7 +776,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		ExecCommands newExecCommands = new ExecCommands();
 
 		newExecCommands.copyColors(commands.get());
-		commands = new AtomicReference<ExecCommands>(newExecCommands);
+		commands = new AtomicReference<>(newExecCommands);
 	}
 
 	private boolean validSpot(List<RobotPeer> robots) {

@@ -276,7 +276,7 @@ public class RobotStatistics implements ContestantStatistics {
 
 	private double getRobotDamage(String robot) {
 		if (robotDamageMap == null) {
-			robotDamageMap = new HashMap<String, Double>();
+			robotDamageMap = new HashMap<>();
 		}
 		Double damage = robotDamageMap.get(robot);
 

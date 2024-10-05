@@ -93,7 +93,7 @@ public class BattleRecordInfo implements Serializable, IXmlSerializable {
 				new BattleRulesWrapper(recordInfo).readXml(reader);
 
 				reader.expect("rounds", new XmlReader.ListElement() {
-					final ArrayList<Integer> ints = new ArrayList<Integer>();
+					final ArrayList<Integer> ints = new ArrayList<>();
 
 					public IXmlSerializable read(XmlReader reader) {
 						// prototype
@@ -113,7 +113,7 @@ public class BattleRecordInfo implements Serializable, IXmlSerializable {
 				reader.expect("results", new XmlReader.ListElement() {
 
 					public IXmlSerializable read(XmlReader reader) {
-						recordInfo.results = new ArrayList<BattleResults>();
+						recordInfo.results = new ArrayList<>();
 						// prototype
 						return new BattleResultsWrapper();
 					}
