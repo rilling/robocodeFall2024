@@ -143,7 +143,6 @@ public abstract class BaseBattle implements IBattle, Runnable {
 		battleRules = null;
 		if (pendingCommands != null) {
 			pendingCommands.clear();
-			// don't pendingCommands = null;
 		}
 		URLJarCollector.enableGc(true);
 		URLJarCollector.gc();
