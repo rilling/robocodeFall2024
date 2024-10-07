@@ -13,4 +13,4 @@ package gl4java;
  *
  * Original author is David Alves for RobocodeGL.
  */
-public class GLFunc {}
+public interface GLFunc {}

@@ -28,10 +28,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public abstract class BaseBattle implements IBattle, Runnable {
 
-	private final static int MAX_TPS = 10000;
+	private static final int MAX_TPS = 10000;
 
 	// Maximum turns to display the battle when battle ended
-	protected final static int TURNS_DISPLAYED_AFTER_ENDING = 30;
+	protected static final int TURNS_DISPLAYED_AFTER_ENDING = 30;
 
 	// Objects we use
 	private Thread battleThread;
@@ -143,7 +143,6 @@ public abstract class BaseBattle implements IBattle, Runnable {
 		battleRules = null;
 		if (pendingCommands != null) {
 			pendingCommands.clear();
-			// don't pendingCommands = null;
 		}
 		URLJarCollector.enableGc(true);
 		URLJarCollector.gc();
