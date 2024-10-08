@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
  */
 public class ScannedRobotEvent extends Event {
 	private static final long serialVersionUID = 1L;
-	private final static int DEFAULT_PRIORITY = 10;
+	private static final int DEFAULT_PRIORITY = 10;
 
 	private final String name;
 	private final double energy;
