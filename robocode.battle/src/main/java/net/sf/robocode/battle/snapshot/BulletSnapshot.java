@@ -231,41 +231,44 @@ public final class BulletSnapshot implements java.io.Serializable, IXmlSerializa
 	 * {@inheritDoc}
 	 */
 	public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
-		writer.startElement(options.shortAttributes ? "b" : "bullet"); {
-			writer.writeAttribute("id", ownerIndex + "-" + bulletId);
-			if (!options.skipExploded || state != BulletState.MOVING) {
-				writer.writeAttribute(options.shortAttributes ? "s" : "state", state.toString());
-				writer.writeAttribute(options.shortAttributes ? "p" : "power", power, options.trimPrecision);
-			}
-			if (state == BulletState.HIT_VICTIM) {
-				writer.writeAttribute(options.shortAttributes ? "v" : "victim", victimIndex);
-			}
-			if (state == BulletState.FIRED) {
-				writer.writeAttribute(options.shortAttributes ? "o" : "owner", ownerIndex);
-				writer.writeAttribute(options.shortAttributes ? "h" : "heading", heading, options.trimPrecision);
-			}
-			writer.writeAttribute("x", paintX, options.trimPrecision);
-			writer.writeAttribute("y", paintY, options.trimPrecision);
-			if (!options.skipNames) {
-				if (color != ExecCommands.defaultBulletColor) {
-					writer.writeAttribute(options.shortAttributes ? "c" : "color",
-							Integer.toHexString(color).toUpperCase());
-				}
-			}
-			if (!options.skipExploded) {
-				if (frame != 0) {
-					writer.writeAttribute("frame", frame);
-				}
-				if (isExplosion) {
-					writer.writeAttribute("isExplosion", true);
-					writer.writeAttribute("explosion", explosionImageIndex);
-				}
-			}
-			if (!options.skipVersion) {
-				writer.writeAttribute("ver", serialVersionUID);
+		writer.startElement(options.shortAttributes ? "b" : "bullet");
+		writeAttributes(writer, options);
+		writer.endElement();
+	}
+
+	private void writeAttributes(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.writeAttribute("id", ownerIndex + "-" + bulletId);
+		if (!options.skipExploded || state != BulletState.MOVING) {
+			writer.writeAttribute(options.shortAttributes ? "s" : "state", state.toString());
+			writer.writeAttribute(options.shortAttributes ? "p" : "power", power, options.trimPrecision);
+		}
+		if (state == BulletState.HIT_VICTIM) {
+			writer.writeAttribute(options.shortAttributes ? "v" : "victim", victimIndex);
+		}
+		if (state == BulletState.FIRED) {
+			writer.writeAttribute(options.shortAttributes ? "o" : "owner", ownerIndex);
+			writer.writeAttribute(options.shortAttributes ? "h" : "heading", heading, options.trimPrecision);
+		}
+		writer.writeAttribute("x", paintX, options.trimPrecision);
+		writer.writeAttribute("y", paintY, options.trimPrecision);
+		if (!options.skipNames) {
+			if (color != ExecCommands.defaultBulletColor) {
+				writer.writeAttribute(options.shortAttributes ? "c" : "color",
+						Integer.toHexString(color).toUpperCase());
 			}
 		}
-		writer.endElement();
+		if (!options.skipExploded) {
+			if (frame != 0) {
+				writer.writeAttribute("frame", frame);
+			}
+			if (isExplosion) {
+				writer.writeAttribute("isExplosion", true);
+				writer.writeAttribute("explosion", explosionImageIndex);
+			}
+		}
+		if (!options.skipVersion) {
+			writer.writeAttribute("ver", serialVersionUID);
+		}
 	}
 
 	/**

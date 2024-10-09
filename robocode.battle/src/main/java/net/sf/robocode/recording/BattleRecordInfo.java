@@ -36,42 +36,49 @@ public class BattleRecordInfo implements Serializable, IXmlSerializable {
 	private UUID battleId;
 
 	public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
-		writer.startElement("recordInfo"); {
-			writer.writeAttribute("robotCount", robotCount);
-			writer.writeAttribute("roundsCount", roundsCount);
-			if (!options.skipVersion) {
-				writer.writeAttribute("ver", serialVersionUID);
-			}
-			writer.startElement("rules"); {
-				writer.writeAttribute("battlefieldWidth", battleRules.getBattlefieldWidth());
-				writer.writeAttribute("battlefieldHeight", battleRules.getBattlefieldHeight());
-				writer.writeAttribute("numRounds", battleRules.getNumRounds());
-				writer.writeAttribute("gunCoolingRate", battleRules.getGunCoolingRate(), options.trimPrecision);
-				writer.writeAttribute("inactivityTime", battleRules.getInactivityTime());
-				writer.writeAttribute("ver", serialVersionUID);
-			}
-			writer.endElement();
+		writer.startElement("recordInfo");
+		writer.writeAttribute("robotCount", robotCount);
+		writer.writeAttribute("roundsCount", roundsCount);
+		if (!options.skipVersion) {
+			writer.writeAttribute("ver", serialVersionUID);
+		}
 
-			writer.startElement("rounds"); {
-				for (int n : turnsInRounds) {
-					writer.startElement("turns"); {
-						writer.writeAttribute("value", Integer.toString(n));
-					}
-					writer.endElement();
-				}
-			}
-			writer.endElement();
+		writeRules(writer, options);
+		writeRounds(writer, options);
+		writeResults(writer, options);
 
-			if (results != null) {
-				writer.startElement("results"); {
-					for (BattleResults result : results) {
-						new BattleResultsWrapper(result).writeXml(writer, options);
-					}
-				}
-				writer.endElement();
-			}
+		writer.endElement();
+	}
+
+	private void writeRules(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.startElement("rules");
+		writer.writeAttribute("battlefieldWidth", battleRules.getBattlefieldWidth());
+		writer.writeAttribute("battlefieldHeight", battleRules.getBattlefieldHeight());
+		writer.writeAttribute("numRounds", battleRules.getNumRounds());
+		writer.writeAttribute("gunCoolingRate", battleRules.getGunCoolingRate(), options.trimPrecision);
+		writer.writeAttribute("inactivityTime", battleRules.getInactivityTime());
+		writer.writeAttribute("ver", serialVersionUID);
+		writer.endElement();
+	}
+
+	private void writeRounds(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.startElement("rounds");
+		for (int n : turnsInRounds) {
+			writer.startElement("turns");
+			writer.writeAttribute("value", Integer.toString(n));
+			writer.endElement();
 		}
 		writer.endElement();
+	}
+
+	private void writeResults(XmlWriter writer, SerializableOptions options) throws IOException {
+		if (results != null) {
+			writer.startElement("results");
+			for (BattleResults result : results) {
+				new BattleResultsWrapper(result).writeXml(writer, options);
+			}
+			writer.endElement();
+		}
 	}
 
 	public XmlReader.Element readXml(XmlReader reader) {
@@ -178,24 +185,28 @@ public class BattleRecordInfo implements Serializable, IXmlSerializable {
 		}
 
 		public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
-			writer.startElement("result"); {
-				writer.writeAttribute("teamLeaderName", teamLeaderName);
-				writer.writeAttribute("rank", rank);
-				writer.writeAttribute("score", score, options.trimPrecision);
-				writer.writeAttribute("survival", survival, options.trimPrecision);
-				writer.writeAttribute("lastSurvivorBonus", lastSurvivorBonus, options.trimPrecision);
-				writer.writeAttribute("bulletDamage", bulletDamage, options.trimPrecision);
-				writer.writeAttribute("bulletDamageBonus", bulletDamageBonus, options.trimPrecision);
-				writer.writeAttribute("ramDamage", ramDamage, options.trimPrecision);
-				writer.writeAttribute("ramDamageBonus", ramDamageBonus, options.trimPrecision);
-				writer.writeAttribute("firsts", firsts);
-				writer.writeAttribute("seconds", seconds);
-				writer.writeAttribute("thirds", thirds);
-				if (!options.skipVersion) {
-					writer.writeAttribute("ver", serialVersionUID);
-				}
-			}
+			writer.startElement("result");
+			writeResultAttributes(writer, options);
 			writer.endElement();
+		}
+
+		private void writeResultAttributes(XmlWriter writer, SerializableOptions options) throws IOException {
+			writer.writeAttribute("teamLeaderName", teamLeaderName);
+			writer.writeAttribute("rank", rank);
+			writer.writeAttribute("score", score, options.trimPrecision);
+			writer.writeAttribute("survival", survival, options.trimPrecision);
+			writer.writeAttribute("lastSurvivorBonus", lastSurvivorBonus, options.trimPrecision);
+			writer.writeAttribute("bulletDamage", bulletDamage, options.trimPrecision);
+			writer.writeAttribute("bulletDamageBonus", bulletDamageBonus, options.trimPrecision);
+			writer.writeAttribute("ramDamage", ramDamage, options.trimPrecision);
+			writer.writeAttribute("ramDamageBonus", ramDamageBonus, options.trimPrecision);
+			writer.writeAttribute("firsts", firsts);
+			writer.writeAttribute("seconds", seconds);
+			writer.writeAttribute("thirds", thirds);
+
+			if (!options.skipVersion) {
+				writer.writeAttribute("ver", serialVersionUID);
+			}
 		}
 
 		public XmlReader.Element readXml(XmlReader reader) {
