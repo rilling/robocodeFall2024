@@ -12,6 +12,7 @@ import net.sf.robocode.repository.root.IRepositoryRoot;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.util.Objects;
 
 
 /**
@@ -69,9 +70,6 @@ public abstract class RepositoryItem implements IRepositoryItem, Serializable {
 			return false;
 		}
 		RepositoryItem other = (RepositoryItem) obj;
-		if (itemUrl == null && other.itemUrl != null) {
-			return false;
-		}
-		return itemUrl.equals(other.itemUrl);
+		return Objects.equals(itemUrl, other.itemUrl);
 	}
 }
