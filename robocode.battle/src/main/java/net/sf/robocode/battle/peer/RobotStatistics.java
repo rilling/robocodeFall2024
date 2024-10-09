@@ -253,6 +253,10 @@ public class RobotStatistics implements ContestantStatistics {
 			case 2:
 				totalThirds++;
 				break;
+
+				default:
+					System.out.println("Unexpected enemiesRemaining");
+					break;
 			}
 		}
 	}
@@ -276,7 +280,7 @@ public class RobotStatistics implements ContestantStatistics {
 
 	private double getRobotDamage(String robot) {
 		if (robotDamageMap == null) {
-			robotDamageMap = new HashMap<String, Double>();
+			robotDamageMap = new HashMap<>();
 		}
 		Double damage = robotDamageMap.get(robot);
 
