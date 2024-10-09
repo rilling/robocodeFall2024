@@ -42,8 +42,8 @@ import java.util.zip.ZipOutputStream;
  * @author Pavel Savara (original)
  */
 public class RecordManager implements IRecordManager {
-    protected static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
-    protected static final Calendar calendar = Calendar.getInstance();
+    protected final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    protected final Calendar calendar = Calendar.getInstance();
     protected static final Charset utf8 = StandardCharsets.UTF_8;
 
     protected final ISettingsManager properties;
@@ -65,14 +65,6 @@ public class RecordManager implements IRecordManager {
         this.properties = properties;
         recorder = new BattleRecorder(this, properties);
         this.versionManager = versionManager;
-    }
-
-    protected void finalize() throws Throwable {
-        try {
-            cleanup();
-        } finally {
-            super.finalize();
-        }
     }
 
     private void cleanup() {
@@ -186,13 +178,13 @@ public class RecordManager implements IRecordManager {
             }
             if (format == BattleRecordFormat.BINARY || format == BattleRecordFormat.BINARY_ZIP) {
                 recordInfo = (BattleRecordInfo) ois.readObject();
-                if (recordInfo.turnsInRounds != null) {
+                if (recordInfo.getTurnsInRounds() != null) {
                     fos = new FileOutputStream(tempFile);
                     bos = new BufferedOutputStream(fos, 1024 * 1024);
                     oos = new ObjectOutputStream(bos);
 
-                    for (int i = 0; i < recordInfo.turnsInRounds.length; i++) {
-                        for (int j = recordInfo.turnsInRounds[i] - 1; j >= 0; j--) {
+                    for (int i = 0; i < recordInfo.getTurnsInRounds().length; i++) {
+                        for (int j = recordInfo.getTurnsInRounds()[i] - 1; j >= 0; j--) {
                             try {
                                 ITurnSnapshot turn = (ITurnSnapshot) ois.readObject();
 
@@ -244,10 +236,10 @@ public class RecordManager implements IRecordManager {
             me = this;
         }
 
-        public ObjectOutputStream oos;
-        public IOException lastException;
+        private ObjectOutputStream oos;
+        private IOException lastException;
         public final RecordRoot me;
-        public BattleRecordInfo recordInfo;
+        private BattleRecordInfo recordInfo;
 
         public void writeXml(XmlWriter writer, SerializableOptions options) {
         }
@@ -264,7 +256,7 @@ public class RecordManager implements IRecordManager {
                     }
 
                     public void close() {
-                        innerReader.getContext().put("robots", recordInfo.robotCount);
+                        innerReader.getContext().put("robots", recordInfo.getRobotCount());
                     }
                 });
 
@@ -292,7 +284,7 @@ public class RecordManager implements IRecordManager {
     }
 
     public void saveRecord(String recordFilename, BattleRecordFormat format, SerializableOptions options) {
-        if (recordInfo.turnsInRounds == null) {
+        if (recordInfo.getTurnsInRounds() == null) {
             return;
         }
         if (format == BattleRecordFormat.BINARY_ZIP || format == BattleRecordFormat.BINARY) {
@@ -338,7 +330,7 @@ public class RecordManager implements IRecordManager {
     }
 
     private void saveXmlRecord(String recordFilename, BattleRecordFormat format, SerializableOptions options) {
-        if (recordInfo.turnsInRounds == null) {
+        if (recordInfo.getTurnsInRounds() == null) {
             return;
         }
 
@@ -451,20 +443,20 @@ public class RecordManager implements IRecordManager {
             oswBullets = new OutputStreamWriter(bosBullets, utf8);
             CsvWriter cwrBullets = new CsvWriter(oswBullets, false);
             cwrBullets.startDocument("version,battleId,roundIndex,turnIndex,bulletId,ownerIndex,ownerName,state,heading,x,y,victimIndex,victimName");
-            int roundsCount = recordInfo.turnsInRounds.length;
+            int roundsCount = recordInfo.getTurnsInRounds().length;
 
 
             // loop over robots
-            for (BattleResults result : recordInfo.results) {
+            for (BattleResults result : recordInfo.getResults()) {
                 BattleRecordInfo.BattleResultsWrapper wrapper = new BattleRecordInfo.BattleResultsWrapper(result);
                 cwrResults.writeValue(version);
-                cwrResults.writeValue(recordInfo.battleId.toString());
+                cwrResults.writeValue(recordInfo.getBattleId().toString());
                 cwrResults.writeValue(roundsCount);
-                cwrResults.writeValue(recordInfo.robotCount);
-                cwrResults.writeValue(recordInfo.battleRules.getBattlefieldWidth());
-                cwrResults.writeValue(recordInfo.battleRules.getBattlefieldHeight());
-                cwrResults.writeValue(recordInfo.battleRules.getGunCoolingRate(), options.trimPrecision);
-                cwrResults.writeValue(recordInfo.battleRules.getInactivityTime());
+                cwrResults.writeValue(recordInfo.getRobotCount());
+                cwrResults.writeValue(recordInfo.getBattleRules().getBattlefieldWidth());
+                cwrResults.writeValue(recordInfo.getBattleRules().getBattlefieldHeight());
+                cwrResults.writeValue(recordInfo.getBattleRules().getGunCoolingRate(), options.trimPrecision);
+                cwrResults.writeValue(recordInfo.getBattleRules().getInactivityTime());
                 cwrResults.writeValue(wrapper.getTeamLeaderName());
                 cwrResults.writeValue(wrapper.getRank());
                 cwrResults.writeValue(wrapper.getScore(), options.trimPrecision);
@@ -483,15 +475,15 @@ public class RecordManager implements IRecordManager {
 
             // loop over rounds
             for (int round = 0; round < roundsCount; round++) {
-                int turnsInRound = recordInfo.turnsInRounds[round];
+                int turnsInRound = recordInfo.getTurnsInRounds()[round];
                 cwrRounds.writeValue(version);
-                cwrRounds.writeValue(recordInfo.battleId.toString());
+                cwrRounds.writeValue(recordInfo.getBattleId().toString());
                 cwrRounds.writeValue(round);
-                cwrRounds.writeValue(recordInfo.robotCount);
-                cwrRounds.writeValue(recordInfo.battleRules.getBattlefieldWidth());
-                cwrRounds.writeValue(recordInfo.battleRules.getBattlefieldHeight());
-                cwrRounds.writeValue(recordInfo.battleRules.getGunCoolingRate(), options.trimPrecision);
-                cwrRounds.writeValue(recordInfo.battleRules.getInactivityTime());
+                cwrRounds.writeValue(recordInfo.getRobotCount());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getBattlefieldWidth());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getBattlefieldHeight());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getGunCoolingRate(), options.trimPrecision);
+                cwrRounds.writeValue(recordInfo.getBattleRules().getInactivityTime());
                 cwrRounds.writeValue(turnsInRound);
                 cwrRounds.endLine();
             }
@@ -506,7 +498,7 @@ public class RecordManager implements IRecordManager {
                     RobotSnapshot robotSnapshot = (RobotSnapshot) robot;
                     IScoreSnapshot scoreSnapshot = robotSnapshot.getScoreSnapshot();
                     cwrRobots.writeValue(version);
-                    cwrRobots.writeValue(recordInfo.battleId.toString());
+                    cwrRobots.writeValue(recordInfo.getBattleId().toString());
                     cwrRobots.writeValue(turn.getRound());
                     cwrRobots.writeValue(turn.getTurn());
                     cwrRobots.writeValue(robotSnapshot.getRobotIndex());
@@ -531,7 +523,7 @@ public class RecordManager implements IRecordManager {
                     BulletSnapshot bulletSnapshot = (BulletSnapshot) bullet;
                     IRobotSnapshot owner = robots[bulletSnapshot.getOwnerIndex()];
                     cwrBullets.writeValue(version);
-                    cwrBullets.writeValue(recordInfo.battleId.toString());
+                    cwrBullets.writeValue(recordInfo.getBattleId().toString());
                     cwrBullets.writeValue(turn.getRound());
                     cwrBullets.writeValue(turn.getTurn());
                     cwrBullets.writeValue(bulletSnapshot.getBulletId());
@@ -574,9 +566,9 @@ public class RecordManager implements IRecordManager {
             bis = new BufferedInputStream(fis, 1024 * 1024);
             ois = new ObjectInputStream(bis);
 
-            for (int i = 0; i < recordInfo.turnsInRounds.length; i++) {
-                if (recordInfo.turnsInRounds[i] > 0) {
-                    for (int j = 0; j <= recordInfo.turnsInRounds[i] - 1; j++) {
+            for (int i = 0; i < recordInfo.getTurnsInRounds().length; i++) {
+                if (recordInfo.getTurnsInRounds()[i] > 0) {
+                    for (int j = 0; j <= recordInfo.getTurnsInRounds()[i] - 1; j++) {
                         TurnSnapshot turn = (TurnSnapshot) ois.readObject();
 
                         if (j != turn.getTurn()) {
@@ -611,29 +603,29 @@ public class RecordManager implements IRecordManager {
         }
 
         recordInfo = new BattleRecordInfo();
-        recordInfo.battleId = battleId;
-        recordInfo.robotCount = numRobots;
-        recordInfo.battleRules = rules;
-        recordInfo.turnsInRounds = new Integer[rules.getNumRounds()];
+        recordInfo.setBattleId(battleId);
+        recordInfo.setRobotCount(numRobots);
+        recordInfo.setBattleRules(rules);
+        recordInfo.setTurnsInRounds(new Integer[rules.getNumRounds()]);
         for (int i = 0; i < rules.getNumRounds(); i++) {
-            recordInfo.turnsInRounds[i] = 0;
+            recordInfo.getTurnsInRounds()[i] = 0;
         }
     }
 
     void updateRecordInfoResults(List<BattleResults> results) {
-        recordInfo.results = results;
+        recordInfo.setResults(results);
     }
 
     void writeTurn(ITurnSnapshot turn, int round, int time) {
         try {
-            if (time != recordInfo.turnsInRounds[round]) {
+            if (time != recordInfo.getTurnsInRounds()[round]) {
                 throw new IllegalStateException("Something rotten");
             }
             if (time == 0) {
                 objectWriteStream.reset();
             }
-            recordInfo.turnsInRounds[round]++;
-            recordInfo.roundsCount = round + 1;
+            recordInfo.getTurnsInRounds()[round]++;
+            recordInfo.setRoundsCount(round + 1);
             objectWriteStream.writeObject(turn);
         } catch (IOException e) {
             logError(e);
