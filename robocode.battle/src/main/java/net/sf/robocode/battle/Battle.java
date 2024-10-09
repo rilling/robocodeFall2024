@@ -713,6 +713,7 @@ public final class Battle extends BaseBattle {
 
 		String[] coords;
 		double x, y, heading;
+		String InvalidCharacters = "[^0-9.]";
 
 		for (int i = 0; i < positions.size(); i++) {
 			coords = positions.get(i).split(",");
@@ -727,17 +728,17 @@ public final class Battle extends BaseBattle {
 
 			if (len >= 1 && coords[0].trim().length() > 0) {
 				try {
-					x = Double.parseDouble(coords[0].replaceAll("[^0-9.]", ""));
+					x = Double.parseDouble(coords[0].replaceAll(InvalidCharacters, ""));
 				} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 				}
 				if (len >= 2 && coords[1].trim().length() > 0) {
 					try {
-						y = Double.parseDouble(coords[1].replaceAll("[^0-9.]", ""));
+						y = Double.parseDouble(coords[1].replaceAll(InvalidCharacters, ""));
 					} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 					}
 					if (len >= 3 && coords[2].trim().length() > 0) {
 						try {
-							heading = Math.toRadians(Double.parseDouble(coords[2].replaceAll("[^0-9.]", "")));
+							heading = Math.toRadians(Double.parseDouble(coords[2].replaceAll(InvalidCharacters, "")));
 						} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 						}
 					}
