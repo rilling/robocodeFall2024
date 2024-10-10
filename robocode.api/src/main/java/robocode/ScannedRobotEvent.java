@@ -52,6 +52,7 @@ public class ScannedRobotEvent extends Event {
 	 *
 	 * @deprecated Use {@link #ScannedRobotEvent(String, double, double, double, double, double, boolean)} instead.
 	 */
+	@Deprecated
 	public ScannedRobotEvent() {
 		this(null, 0, 0, 0, 0, 0, false);
 	}
