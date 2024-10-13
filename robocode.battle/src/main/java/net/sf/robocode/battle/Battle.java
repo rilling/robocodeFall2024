@@ -712,7 +712,9 @@ public final class Battle extends BaseBattle {
 		initialRobotSetups = new RobotSetup[positions.size()];
 
 		String[] coords;
-		double x, y, heading;
+		double x;
+		double y;
+		double heading;
 
 		for (int i = 0; i < positions.size(); i++) {
 			coords = positions.get(i).split(",");
