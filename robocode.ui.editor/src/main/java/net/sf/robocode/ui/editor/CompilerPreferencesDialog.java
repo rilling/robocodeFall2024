@@ -164,7 +164,9 @@ public class CompilerPreferencesDialog extends JDialog {
 			if (out != null) {
 				try {
 					out.close();
-				} catch (IOException ignored) {}
+				} catch (IOException ignored) {
+					Logger.logError(ignored);
+				}
 			}
 		}
 	}
