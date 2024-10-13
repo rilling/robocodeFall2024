@@ -251,11 +251,10 @@ public final class BulletSnapshot implements java.io.Serializable, IXmlSerializa
 		}
 		writer.writeAttribute("x", paintX, options.trimPrecision);
 		writer.writeAttribute("y", paintY, options.trimPrecision);
-		if (!options.skipNames) {
-			if (color != ExecCommands.defaultBulletColor) {
-				writer.writeAttribute(options.shortAttributes ? "c" : "color",
-						Integer.toHexString(color).toUpperCase());
-			}
+		if (!options.skipNames && color != ExecCommands.defaultBulletColor) {
+			writer.writeAttribute(options.shortAttributes ? "c" : "color",
+					Integer.toHexString(color).toUpperCase());
+			
 		}
 		if (!options.skipExploded) {
 			if (frame != 0) {
