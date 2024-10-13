@@ -431,7 +431,7 @@ public final class Battle extends BaseBattle {
 				}
 			}
 			if (isAborted() || isLastRound()) {
-				List<RobotPeer> orderedRobots = new ArrayList<RobotPeer>(robots);
+				List<RobotPeer> orderedRobots = new ArrayList<>(robots);
 				Collections.sort(orderedRobots);
 				Collections.reverse(orderedRobots);
 
