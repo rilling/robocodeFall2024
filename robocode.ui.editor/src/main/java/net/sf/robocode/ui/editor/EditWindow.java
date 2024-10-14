@@ -113,12 +113,7 @@ public class EditWindow extends JInternalFrame {
 			editorPanel.setFont(font);
 
 			// Make sure the source editor window gets focus with a blinking cursor
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					editorPanel.getEditorPane().requestFocus();
-				}
-			});
+			SwingUtilities.invokeLater(() -> editorPanel.getEditorPane().requestFocus());
 
 			EditorThemePropertiesManager.addListener(new EditorThemePropertyChangeAdapter() {
 				@Override
