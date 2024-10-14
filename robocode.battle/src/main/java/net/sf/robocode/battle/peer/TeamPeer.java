@@ -94,7 +94,7 @@ public class TeamPeer extends ArrayList<RobotPeer> implements ContestantPeer {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (! super.equals(obj)){
+		if (!super.equals(obj)) {
 			return false;
 		}
 		TeamPeer other = (TeamPeer) obj;
