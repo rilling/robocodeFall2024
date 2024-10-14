@@ -29,6 +29,11 @@ public class FileUtil {
 	// Current working directory
 	private static File cwd;
 
+	// ** Change made here: Adding a private constructor **
+	private FileUtil() {
+		// Prevent instantiation
+	}
+
 	// Initializes the current working directory
 	static {
 		try {
