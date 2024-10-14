@@ -716,6 +716,10 @@ public final class Battle extends BaseBattle {
 		return count;
 	}
 
+	private String stripNonNumericCharacters(String input) {
+    		return input.replaceAll("[^0-9.]", "");
+	}
+
 	private void computeInitialPositions(String initialPositions) {
 		initialRobotSetups = null;
 
@@ -758,17 +762,17 @@ public final class Battle extends BaseBattle {
 
 			if (len >= 1 && coords[0].trim().length() > 0) {
 				try {
-					x = Double.parseDouble(coords[0].replaceAll("[^0-9.]", ""));
+					x = Double.parseDouble(stripNonNumericCharacters(coords[0]));
 				} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 				}
 				if (len >= 2 && coords[1].trim().length() > 0) {
 					try {
-						y = Double.parseDouble(coords[1].replaceAll("[^0-9.]", ""));
+						y = Double.parseDouble(stripNonNumericCharacters(coords[1]));
 					} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 					}
 					if (len >= 3 && coords[2].trim().length() > 0) {
 						try {
-							heading = Math.toRadians(Double.parseDouble(coords[2].replaceAll("[^0-9.]", "")));
+							heading = Math.toRadians(Double.parseDouble(stripNonNumericCharacters(coords[2])));
 						} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 						}
 					}
