@@ -29,6 +29,9 @@ public class FileUtil {
 	// Current working directory
 	private static File cwd;
 
+	private FileUtil() {
+	}
+
 	// Initializes the current working directory
 	static {
 		try {
