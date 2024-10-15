@@ -8,7 +8,6 @@
 package net.sf.robocode.ui.editor;
 
 
-import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.repository.IRepositoryManager;
 import net.sf.robocode.ui.editor.theme.EditorThemeProperties;
@@ -275,22 +274,15 @@ public class EditWindow extends JInternalFrame {
 			}
 		}
 
-		BufferedWriter bufferedWriter = null;
-		OutputStreamWriter outputStreamWriter = null;
-		FileOutputStream fileOutputStream = null;
-
-		try {
-			fileOutputStream = new FileOutputStream(fileName);
-			outputStreamWriter = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8);
-			bufferedWriter = new BufferedWriter(outputStreamWriter);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+			 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8);
+			 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter)) {
 
 			getEditorPane().write(bufferedWriter);
 			setModified(false);
 		} catch (IOException e) {
 			error("Cannot write file: " + e);
 			return false;
-		} finally {
-			FileUtil.cleanupStream(bufferedWriter);
 		}
 		return true;
 	}
