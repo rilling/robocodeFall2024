@@ -57,7 +57,8 @@ public final class RbSerializer {
 	public static final byte HitWallEvent_TYPE = 38;
 	public static final byte RobotDeathEvent_TYPE = 39;
 	public static final byte SkippedTurnEvent_TYPE = 40;
-	public static final byte ScannedRobotEvent_TYPE = 41;
+	public static final byte ScannedRobotEvent_TYPE = 41;y
+
 	public static final byte HitByBulletEvent_TYPE = 42;
 	public static final byte HitRobotEvent_TYPE = 43;
 	public static final byte KeyPressedEvent_TYPE = 44;
