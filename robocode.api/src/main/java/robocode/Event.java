@@ -36,7 +36,8 @@ public abstract class Event implements Comparable<Event>, Serializable {
 	/**
 	 * Default constructor used by the game to create a new event.
 	 */
-	public Event() {
+	protected Event()
+	{
 		super();
 	}
 
