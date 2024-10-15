@@ -1202,7 +1202,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				} // if it hits a side wall
 				else if (adjustY == 0) {
 					adjustY = adjustX / tanHeading;
-				}// if the robot hits 2 walls at the same time (rare, but just in case)
+				} // if the robot hits 2 walls at the same time (rare, but just in case)
 				else if (abs(adjustX / tanHeading) > abs(adjustY)) {
 					adjustY = adjustX / tanHeading;
 				} else if (abs(adjustY * tanHeading) > abs(adjustX)) {
