@@ -27,6 +27,7 @@ import robocode.control.snapshot.IScoreSnapshot;
 import robocode.control.snapshot.ITurnSnapshot;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -42,8 +43,8 @@ import java.util.zip.ZipOutputStream;
  * @author Pavel Savara (original)
  */
 public class RecordManager implements IRecordManager {
-    protected static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
-    protected static final Calendar calendar = Calendar.getInstance();
+    protected final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    protected final Calendar calendar = Calendar.getInstance();
     protected static final Charset utf8 = StandardCharsets.UTF_8;
 
     protected final ISettingsManager properties;
@@ -67,6 +68,7 @@ public class RecordManager implements IRecordManager {
         this.versionManager = versionManager;
     }
 
+
     protected void finalize() throws Throwable {
         try {
             cleanup();
@@ -78,9 +80,7 @@ public class RecordManager implements IRecordManager {
     private void cleanup() {
         cleanupStreams();
         if (tempFile != null && tempFile.exists()) {
-            if (!tempFile.delete()) {
-                Logger.logError("Could not delete temp file");
-            }
+            deleteTempFile();
             tempFile = null;
         }
         recordInfo = null;
@@ -110,15 +110,21 @@ public class RecordManager implements IRecordManager {
         recorder.detachRecorder();
     }
 
+    private void deleteTempFile(){
+        try{
+            Files.delete(tempFile.toPath());
+        } catch(IOException e){
+            Logger.logError("Could not delete temp file");
+        }
+    }
+
     private void createTempFile() {
         try {
             if (tempFile == null) {
                 tempFile = File.createTempFile("robocode-battle-records", ".tmp");
                 tempFile.deleteOnExit();
             } else {
-                if (!tempFile.delete()) {
-                    Logger.logError("Could not delete temp file");
-                }
+                deleteTempFile();
                 if (!tempFile.createNewFile()) {
                     throw new Error("Temp file creation failed");
                 }
