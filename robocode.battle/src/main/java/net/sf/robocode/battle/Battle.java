@@ -436,7 +436,7 @@ public final class Battle extends BaseBattle {
 	}
 
 	private void processBattleResults() {
-		List<RobotPeer> orderedRobots = new ArrayList<RobotPeer>(robots);
+		List<RobotPeer> orderedRobots = new ArrayList<>(robots);
 		Collections.sort(orderedRobots);
 		Collections.reverse(orderedRobots);
 
