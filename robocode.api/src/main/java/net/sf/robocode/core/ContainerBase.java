@@ -12,15 +12,7 @@ package net.sf.robocode.core;
  * @author Pavel Savara (original)
  */
 public abstract class ContainerBase {
-	private static ContainerBase instance;
-
-	public ContainerBase getInstance() {
-		return instance;
-	}
-
-	public void setInstance(ContainerBase instance) {
-		ContainerBase.instance = instance;
-	}
+	public static ContainerBase instance;
 
 	protected abstract <T> T getBaseComponent(java.lang.Class<T> tClass);
 
