@@ -64,7 +64,7 @@ public abstract class BaseBattle implements IBattle, Runnable {
 	private int stepCount;
 	private boolean runBackward;
 	private boolean roundOver;
-	private final Queue<Command> pendingCommands = new ConcurrentLinkedQueue<Command>();
+	private final Queue<Command> pendingCommands = new ConcurrentLinkedQueue<>();
 
 	protected BaseBattle(ISettingsManager properties, IBattleManager battleManager, BattleEventDispatcher eventDispatcher) {
 		stepCount = 0;
