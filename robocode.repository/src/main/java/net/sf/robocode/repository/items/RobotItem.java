@@ -132,7 +132,7 @@ public class RobotItem extends RobotSpecItem implements IRobotItem {
 
 	private void populateClassURLFromPropertiesURL() {
 		if (classURL == null && propertiesURL != null) {
-			final String path = propertiesURL.toString().replaceAll("\\" + PROPERTIES_EXTENSION, CLASS_EXTENSION);
+			final String path = propertiesURL.toString().replace("\\" + PROPERTIES_EXTENSION, CLASS_EXTENSION);
 
 			try {
 				classURL = new URL(path);
