@@ -20,9 +20,6 @@ import net.sf.robocode.recording.RecordManager;
  */
 public class Module {
 
-    private Module(){
-        throw new IllegalStateException("utility class");
-    }
 
 	static {
 		Container.cache.addComponent(IBattleManager.class, BattleManager.class);
