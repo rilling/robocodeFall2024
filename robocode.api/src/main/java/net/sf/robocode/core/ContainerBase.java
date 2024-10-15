@@ -12,7 +12,6 @@ package net.sf.robocode.core;
  * @author Pavel Savara (original)
  */
 public abstract class ContainerBase {
-//	public static ContainerBase instance;
 	public static ContainerBase instance;
 
 	protected abstract <T> T getBaseComponent(Class<T> tClass);
