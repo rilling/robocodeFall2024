@@ -57,7 +57,7 @@ public final class Container extends ContainerBase {
 	private static final List<IModule> modules = new ArrayList<IModule>();
 
 	static {
-		ContainerBase instance = new Container();
+//		ContainerBase instance = new Container();
 		systemLoader = Container.class.getClassLoader();
 		engineLoader = new EngineClassLoader(systemLoader);
 		final Thread currentThread = Thread.currentThread();
