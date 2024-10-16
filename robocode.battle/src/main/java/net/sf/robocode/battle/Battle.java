@@ -705,7 +705,7 @@ public final class Battle extends BaseBattle {
 				positions.add(pos);
 			}
 		}
-		if (positions.empty()) {
+		if (positions.isEmpty()) {
 			return;
 		}
 
