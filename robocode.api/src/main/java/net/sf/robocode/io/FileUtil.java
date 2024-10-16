@@ -191,9 +191,10 @@ public class FileUtil {
 	 * @return the created directory
 	 */
 	public static File createDir(File dir) {
-		if (dir != null && !dir.exists() && !dir.mkdir()) {
+		if (dir != null && !dir.exists()) {
+			if (!dir.mkdir()) {
 				Logger.logError("Cannot create dir: " + dir);
-			
+			}
 		}
 		return dir;
 	}
