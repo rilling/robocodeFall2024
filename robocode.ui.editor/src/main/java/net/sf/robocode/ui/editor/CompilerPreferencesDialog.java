@@ -158,7 +158,9 @@ public class CompilerPreferencesDialog extends JDialog {
 			compilerProperties.store(out, "Robocode Compiler Properties");
 		} catch (IOException e) {
 			Logger.logError(e);
-		} finally {
+		} 
+		/*
+		finally {
 			if (out != null) {
 				try {
 					out.close();
@@ -167,5 +169,6 @@ public class CompilerPreferencesDialog extends JDialog {
 				}
 			}
 		}
+		*/
 	}
 }
