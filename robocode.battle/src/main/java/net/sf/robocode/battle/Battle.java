@@ -69,16 +69,16 @@ public final class Battle extends BaseBattle {
 
 	// Objects in the battle
 	private int robotsCount;
-	private List<RobotPeer> robots = new ArrayList<RobotPeer>();
-	private List<ContestantPeer> contestants = new ArrayList<ContestantPeer>();
-	private final List<BulletPeer> bullets = new CopyOnWriteArrayList<BulletPeer>();
+	private List<RobotPeer> robots = new ArrayList<>();
+	private List<ContestantPeer> contestants = new ArrayList<>();
+	private final List<BulletPeer> bullets = new CopyOnWriteArrayList<>();
 
 	// Robot counters
 	private int activeParticipants;
 	private int activeSentries;
 
 	// Death events
-	private final List<RobotPeer> deathRobots = new CopyOnWriteArrayList<RobotPeer>();
+	private final List<RobotPeer> deathRobots = new CopyOnWriteArrayList<>();
 
 	// Initial robot setups (if any)
 	private RobotSetup[] initialRobotSetups;
@@ -101,13 +101,13 @@ public final class Battle extends BaseBattle {
 
 	private void createPeers(RobotSpecification[] battlingRobotsList) {
 
-		List<String> teamNames = new ArrayList<String>();
-		Map<String, List<String>> teamMembers = new HashMap<String, List<String>>();
-		Map<String /* name */, Integer /* count */> robotNameCount = new HashMap<String, Integer>();
+		List<String> teamNames = new ArrayList<>();
+		Map<String, List<String>> teamMembers = new HashMap<>();
+		Map<String /* name */, Integer /* count */> robotNameCount = new HashMap<>();
 		int[] robotSuffixNumbers = new int[battlingRobotsList.length];
 		String[] robotSuffixes = new String[battlingRobotsList.length];
 		String[] robotNames = new String[battlingRobotsList.length];
-		Map<String, TeamPeer> teamPeers = new HashMap<String, TeamPeer>();
+		Map<String, TeamPeer> teamPeers = new HashMap<>();
 
 		// Populate raw names and suffix numbers (to be included when name duplicates exist)
 		for (int robotIndex = 0; robotIndex < battlingRobotsList.length; robotIndex++) {
@@ -395,62 +395,91 @@ public final class Battle extends BaseBattle {
 	@Override
 	protected void shutdownTurn() {
 		if (endTimer == 0) {
-			if (isAborted()) {
-				for (RobotPeer robotPeer : getRobotsAtRandom()) {
-					if (robotPeer.isAlive()) {
-						robotPeer.println("SYSTEM: game aborted.");
-					}
-				}
-			} else if (oneTeamRemaining()) {
-				boolean leaderFirsts = false;
-				TeamPeer winningTeam = null;
-
-				robocode.RoundEndedEvent roundEndedEvent = new robocode.RoundEndedEvent(getRoundNum(), currentTime,
-						totalTurns); 
-
-				for (RobotPeer robotPeer : getRobotsAtRandom()) {
-					robotPeer.addEvent(roundEndedEvent);
-					if (robotPeer.isAlive() && !robotPeer.isWinner() && !robotPeer.isSentryRobot()) {
-						robotPeer.getRobotStatistics().scoreLastSurvivor();
-						robotPeer.setWinner(true);
-						robotPeer.println("SYSTEM: " + robotPeer.getNameForEvent(robotPeer) + " wins the round.");
-						robotPeer.addEvent(new WinEvent());
-						if (robotPeer.getTeamPeer() != null) {
-							if (robotPeer.isTeamLeader()) {
-								leaderFirsts = true;
-							} else {
-								winningTeam = robotPeer.getTeamPeer();
-							}
-						}
-					}
-					// Generate totals as round has ended, but first when the last scores has been calculated
-					robotPeer.getRobotStatistics().generateTotals();
-				}
-				if (!leaderFirsts && winningTeam != null) {
-					winningTeam.getTeamLeader().getRobotStatistics().scoreFirsts();
-				}
-			}
-			if (isAborted() || isLastRound()) {
-				List<RobotPeer> orderedRobots = new ArrayList<RobotPeer>(robots);
-				Collections.sort(orderedRobots);
-				Collections.reverse(orderedRobots);
-
-				for (int rank = 0; rank < robots.size(); rank++) {
-					RobotPeer robotPeer = orderedRobots.get(rank);
-					robotPeer.getStatistics().setRank(rank + 1);
-					BattleResults battleResults = robotPeer.getStatistics().getFinalResults();
-					robotPeer.addEvent(new BattleEndedEvent(isAborted(), battleResults));
-				}
-			}
+			handleEndOfBattle();
 		}
 
 		if (endTimer > 4 * TURNS_DISPLAYED_AFTER_ENDING) {
-			for (RobotPeer robotPeer : robots) {
-				robotPeer.setHalt(true);
-			}
+			haltAllRobots();
 		}
 
 		super.shutdownTurn();
+	}
+
+	private void handleEndOfBattle() {
+		if (isAborted()) {
+			handleGameAborted();
+			processBattleResults();
+			return;
+		}
+
+		if (oneTeamRemaining()) {
+			handleOneTeamRemaining();
+		}
+
+		if (isLastRound()) {
+			processBattleResults();
+		}
+	}
+
+	private void haltAllRobots() {
+		for (RobotPeer robotPeer : robots) {
+			robotPeer.setHalt(true);
+		}
+	}
+
+	private void handleGameAborted() {
+		for (RobotPeer robotPeer : getRobotsAtRandom()) {
+			if (robotPeer.isAlive()) {
+				robotPeer.println("SYSTEM: game aborted.");
+			}
+		}
+	}
+
+	private void processBattleResults() {
+		List<RobotPeer> orderedRobots = new ArrayList<>(robots);
+		Collections.sort(orderedRobots);
+		Collections.reverse(orderedRobots);
+
+		for (int rank = 0; rank < robots.size(); rank++) {
+			RobotPeer robotPeer = orderedRobots.get(rank);
+			robotPeer.getStatistics().setRank(rank + 1);
+			BattleResults battleResults = robotPeer.getStatistics().getFinalResults();
+			robotPeer.addEvent(new BattleEndedEvent(isAborted(), battleResults));
+		}
+	}
+
+	private void handleOneTeamRemaining() {
+		boolean leaderFirsts = false;
+		TeamPeer winningTeam = null;
+
+		robocode.RoundEndedEvent roundEndedEvent = new robocode.RoundEndedEvent(getRoundNum(), currentTime,
+				totalTurns);
+
+		for (RobotPeer robotPeer : getRobotsAtRandom()) {
+			robotPeer.addEvent(roundEndedEvent);
+			if (robotPeer.isAlive() && !robotPeer.isWinner() && !robotPeer.isSentryRobot()) {
+				processWinningRobot(robotPeer);
+				if (robotPeer.getTeamPeer() != null) {
+					if (robotPeer.isTeamLeader()) {
+						leaderFirsts = true;
+					} else {
+						winningTeam = robotPeer.getTeamPeer();
+					}
+				}
+			}
+			// Generate totals as round has ended, but first when the last scores has been calculated
+			robotPeer.getRobotStatistics().generateTotals();
+		}
+		if (!leaderFirsts && winningTeam != null) {
+			winningTeam.getTeamLeader().getRobotStatistics().scoreFirsts();
+		}
+	}
+
+	private static void processWinningRobot(RobotPeer robotPeer) {
+		robotPeer.getRobotStatistics().scoreLastSurvivor();
+		robotPeer.setWinner(true);
+		robotPeer.println("SYSTEM: " + robotPeer.getNameForEvent(robotPeer) + " wins the round.");
+		robotPeer.addEvent(new WinEvent());
 	}
 
 	@Override
@@ -461,7 +490,7 @@ public final class Battle extends BaseBattle {
 	}
 
 	private BattleResults[] computeBattleResults() {
-		ArrayList<BattleResults> results = new ArrayList<BattleResults>();
+		ArrayList<BattleResults> results = new ArrayList<>();
 		for (int i = 0; i < contestants.size(); i++) {
 			results.add(null);
 		}
@@ -491,7 +520,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of robot peers.
 	 */
 	private List<RobotPeer> getRobotsAtRandom() {
-		List<RobotPeer> shuffledList = new ArrayList<RobotPeer>(robots);
+		List<RobotPeer> shuffledList = new ArrayList<>(robots);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -503,7 +532,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of bullet peers.
 	 */
 	private List<BulletPeer> getBulletsAtRandom() {
-		List<BulletPeer> shuffledList = new ArrayList<BulletPeer>(bullets);
+		List<BulletPeer> shuffledList = new ArrayList<>(bullets);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -515,7 +544,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of robot peers.
 	 */
 	private List<RobotPeer> getDeathRobotsAtRandom() {
-		List<RobotPeer> shuffledList = new ArrayList<RobotPeer>(deathRobots);
+		List<RobotPeer> shuffledList = new ArrayList<>(deathRobots);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -687,6 +716,10 @@ public final class Battle extends BaseBattle {
 		return count;
 	}
 
+	private String stripNonNumericCharacters(String input) {
+    		return input.replaceAll("[^0-9.]", "");
+	}
+
 	private void computeInitialPositions(String initialPositions) {
 		initialRobotSetups = null;
 
@@ -694,7 +727,7 @@ public final class Battle extends BaseBattle {
 			return;
 		}
 
-		List<String> positions = new ArrayList<String>();
+		List<String> positions = new ArrayList<>();
 
 		Pattern pattern = Pattern.compile("([^,(]*[(][^)]*[)])?[^,]*,?");
 		Matcher matcher = pattern.matcher(initialPositions);
@@ -712,7 +745,9 @@ public final class Battle extends BaseBattle {
 		initialRobotSetups = new RobotSetup[positions.size()];
 
 		String[] coords;
-		double x, y, heading;
+		double x;
+		double y;
+		double heading;
 
 		for (int i = 0; i < positions.size(); i++) {
 			coords = positions.get(i).split(",");
@@ -727,17 +762,17 @@ public final class Battle extends BaseBattle {
 
 			if (len >= 1 && coords[0].trim().length() > 0) {
 				try {
-					x = Double.parseDouble(coords[0].replaceAll("[^0-9.]", ""));
+					x = Double.parseDouble(stripNonNumericCharacters(coords[0]));
 				} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 				}
 				if (len >= 2 && coords[1].trim().length() > 0) {
 					try {
-						y = Double.parseDouble(coords[1].replaceAll("[^0-9.]", ""));
+						y = Double.parseDouble(stripNonNumericCharacters(coords[1]));
 					} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 					}
 					if (len >= 3 && coords[2].trim().length() > 0) {
 						try {
-							heading = Math.toRadians(Double.parseDouble(coords[2].replaceAll("[^0-9.]", "")));
+							heading = Math.toRadians(Double.parseDouble(stripNonNumericCharacters(coords[2])));
 						} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 						}
 					}

@@ -242,31 +242,22 @@ public class BattleManager implements IBattleManager {
 			logError("Cannot save battle to null path, use setBattleFilename()");
 			return;
 		}
-		FileOutputStream out = null;
 
-		try {
-			out = new FileOutputStream(battleFilename);
-
+		try (FileOutputStream out = new FileOutputStream(battleFilename)) {
 			battleProperties.store(out, "Battle Properties");
 		} catch (IOException e) {
 			logError("IO Exception saving battle properties: " + e);
-		} finally {
-			FileUtil.cleanupStream(out);
 		}
 	}
 
 	public BattleProperties loadBattleProperties() {
 		BattleProperties res = new BattleProperties();
-		FileInputStream in = null;
-		try {
-			in = new FileInputStream(getBattleFilename());
+		try (FileInputStream in = new FileInputStream(getBattleFilename())) {
 			res.load(in);
 		} catch (FileNotFoundException e) {
 			logError("No file " + battleFilename + " found, using defaults.");
 		} catch (IOException e) {
 			logError("Error while reading " + getBattleFilename() + ": " + e);
-		} finally {
-			FileUtil.cleanupStream(in);
 		}
 		return res;
 	}
