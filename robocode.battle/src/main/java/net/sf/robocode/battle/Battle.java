@@ -69,16 +69,16 @@ public final class Battle extends BaseBattle {
 
 	// Objects in the battle
 	private int robotsCount;
-	private List<RobotPeer> robots = new ArrayList<RobotPeer>();
-	private List<ContestantPeer> contestants = new ArrayList<ContestantPeer>();
-	private final List<BulletPeer> bullets = new CopyOnWriteArrayList<BulletPeer>();
+	private List<RobotPeer> robots = new ArrayList<>();
+	private List<ContestantPeer> contestants = new ArrayList<>();
+	private final List<BulletPeer> bullets = new CopyOnWriteArrayList<>();
 
 	// Robot counters
 	private int activeParticipants;
 	private int activeSentries;
 
 	// Death events
-	private final List<RobotPeer> deathRobots = new CopyOnWriteArrayList<RobotPeer>();
+	private final List<RobotPeer> deathRobots = new CopyOnWriteArrayList<>();
 
 	// Initial robot setups (if any)
 	private RobotSetup[] initialRobotSetups;
@@ -101,13 +101,13 @@ public final class Battle extends BaseBattle {
 
 	private void createPeers(RobotSpecification[] battlingRobotsList) {
 
-		List<String> teamNames = new ArrayList<String>();
-		Map<String, List<String>> teamMembers = new HashMap<String, List<String>>();
-		Map<String /* name */, Integer /* count */> robotNameCount = new HashMap<String, Integer>();
+		List<String> teamNames = new ArrayList<>();
+		Map<String, List<String>> teamMembers = new HashMap<>();
+		Map<String /* name */, Integer /* count */> robotNameCount = new HashMap<>();
 		int[] robotSuffixNumbers = new int[battlingRobotsList.length];
 		String[] robotSuffixes = new String[battlingRobotsList.length];
 		String[] robotNames = new String[battlingRobotsList.length];
-		Map<String, TeamPeer> teamPeers = new HashMap<String, TeamPeer>();
+		Map<String, TeamPeer> teamPeers = new HashMap<>();
 
 		// Populate raw names and suffix numbers (to be included when name duplicates exist)
 		for (int robotIndex = 0; robotIndex < battlingRobotsList.length; robotIndex++) {
@@ -431,7 +431,7 @@ public final class Battle extends BaseBattle {
 				}
 			}
 			if (isAborted() || isLastRound()) {
-				List<RobotPeer> orderedRobots = new ArrayList<RobotPeer>(robots);
+				List<RobotPeer> orderedRobots = new ArrayList<>(robots);
 				Collections.sort(orderedRobots);
 				Collections.reverse(orderedRobots);
 
@@ -461,7 +461,7 @@ public final class Battle extends BaseBattle {
 	}
 
 	private BattleResults[] computeBattleResults() {
-		ArrayList<BattleResults> results = new ArrayList<BattleResults>();
+		ArrayList<BattleResults> results = new ArrayList<>();
 		for (int i = 0; i < contestants.size(); i++) {
 			results.add(null);
 		}
@@ -491,7 +491,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of robot peers.
 	 */
 	private List<RobotPeer> getRobotsAtRandom() {
-		List<RobotPeer> shuffledList = new ArrayList<RobotPeer>(robots);
+		List<RobotPeer> shuffledList = new ArrayList<>(robots);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -503,7 +503,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of bullet peers.
 	 */
 	private List<BulletPeer> getBulletsAtRandom() {
-		List<BulletPeer> shuffledList = new ArrayList<BulletPeer>(bullets);
+		List<BulletPeer> shuffledList = new ArrayList<>(bullets);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -515,7 +515,7 @@ public final class Battle extends BaseBattle {
 	 * @return a list of robot peers.
 	 */
 	private List<RobotPeer> getDeathRobotsAtRandom() {
-		List<RobotPeer> shuffledList = new ArrayList<RobotPeer>(deathRobots);
+		List<RobotPeer> shuffledList = new ArrayList<>(deathRobots);
 
 		Collections.shuffle(shuffledList, RandomFactory.getRandom());
 		return shuffledList;
@@ -694,7 +694,7 @@ public final class Battle extends BaseBattle {
 			return;
 		}
 
-		List<String> positions = new ArrayList<String>();
+		List<String> positions = new ArrayList<>();
 
 		Pattern pattern = Pattern.compile("([^,(]*[(][^)]*[)])?[^,]*,?");
 		Matcher matcher = pattern.matcher(initialPositions);
@@ -712,7 +712,9 @@ public final class Battle extends BaseBattle {
 		initialRobotSetups = new RobotSetup[positions.size()];
 
 		String[] coords;
-		double x, y, heading;
+		double x;
+		double y;
+		double heading;
 
 		for (int i = 0; i < positions.size(); i++) {
 			coords = positions.get(i).split(",");

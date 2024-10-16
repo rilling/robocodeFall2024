@@ -64,8 +64,8 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	 *                    {@code false} otherwise.
 	 */
 	public TurnSnapshot(Battle battle, List<RobotPeer> battleRobots, List<BulletPeer> battleBullets, boolean readoutText) {
-		robots = new ArrayList<IRobotSnapshot>();
-		bullets = new ArrayList<IBulletSnapshot>();
+		robots = new ArrayList<>();
+		bullets = new ArrayList<>();
 
 		for (RobotPeer robotPeer : battleRobots) {
 			robots.add(new RobotSnapshot(robotPeer, readoutText));
@@ -124,7 +124,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	 * {@inheritDoc}
 	 */
 	public IScoreSnapshot[] getSortedTeamScores() {
-		List<IScoreSnapshot> copy = new ArrayList<IScoreSnapshot>(Arrays.asList(getIndexedTeamScores()));
+		List<IScoreSnapshot> copy = new ArrayList<>(Arrays.asList(getIndexedTeamScores()));
 
 		Collections.sort(copy);
 		Collections.reverse(copy);
@@ -137,7 +137,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	public IScoreSnapshot[] getIndexedTeamScores() {
 		// team scores are computed on demand from team scores to not duplicate data in the snapshot
 
-		List<IScoreSnapshot> results = new ArrayList<IScoreSnapshot>();
+		List<IScoreSnapshot> results = new ArrayList<>();
 
 		// noinspection ForLoopReplaceableByForEach
 		for (int i = 0; i < robots.size(); i++) {
@@ -153,7 +153,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 			results.set(contestantIndex, score);
 		}
-		List<IScoreSnapshot> scores = new ArrayList<IScoreSnapshot>();
+		List<IScoreSnapshot> scores = new ArrayList<>();
 
 		for (IScoreSnapshot scoreSnapshot : results) {
 			if (scoreSnapshot != null) {
@@ -174,55 +174,58 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	 * {@inheritDoc}
 	 */
 	public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
-		writer.startElement(options.shortAttributes ? "t" : "turn"); {
-			writer.writeAttribute(options.shortAttributes ? "ro" : "round", round);
-			writer.writeAttribute(options.shortAttributes ? "tu" : "turn", turn);
-			if (!options.skipVersion) {
-				writer.writeAttribute("ver", serialVersionUID);
-			}
+		writer.startElement(options.shortAttributes ? "t" : "turn");
+		writer.writeAttribute(options.shortAttributes ? "ro" : "round", round);
+		writer.writeAttribute(options.shortAttributes ? "tu" : "turn", turn);
+		if (!options.skipVersion) {
+			writer.writeAttribute("ver", serialVersionUID);
+		}
 
-			writer.startElement(options.shortAttributes ? "rs" : "robots"); {
-				SerializableOptions op = options;
+		writeRobots(writer, options);
+		writeBullets(writer, options);
 
-				if (turn == 0) {
-					op = new SerializableOptions(options);
-					op.skipNames = false;
-				}
-				for (IRobotSnapshot r : robots) {
-					final RobotSnapshot rs = (RobotSnapshot) r;
+		writer.endElement();
+	}
 
-					if (!options.skipExploded || rs.getState() != RobotState.DEAD) {
-						rs.writeXml(writer, op);
-					} else {
-						boolean writeFirstExplosionFrame = false;
+	private void writeRobots(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.startElement(options.shortAttributes ? "rs" : "robots");
+		SerializableOptions op = options;
 
-						for (IBulletSnapshot b : bullets) {
-							if (b.isExplosion() && b.getFrame() == 0 && b.getVictimIndex() == r.getRobotIndex()) {
-								writeFirstExplosionFrame = true;
-								break;
-							}
-						}
-						if (writeFirstExplosionFrame) {
-							rs.writeXml(writer, op);
-						}
-					}
-				}
-			}
-			writer.endElement();
-
-			writer.startElement(options.shortAttributes ? "bs" : "bullets"); {
+		if (turn == 0) {
+			op = new SerializableOptions(options);
+			op.skipNames = false;
+		}
+		for (IRobotSnapshot r : robots) {
+			final RobotSnapshot rs = (RobotSnapshot) r;
+			if (!options.skipExploded || rs.getState() != RobotState.DEAD) {
+				rs.writeXml(writer, op);
+			} else {
+				boolean writeFirstExplosionFrame = false;
 				for (IBulletSnapshot b : bullets) {
-					final BulletSnapshot bs = (BulletSnapshot) b;
-					final BulletState state = bs.getState();
-
-					if (!options.skipExploded
-							|| (state != BulletState.EXPLODED && state != BulletState.INACTIVE
-							&& (bs.getFrame() == 0 || state == BulletState.MOVING))) {
-						bs.writeXml(writer, options);
+					if (b.isExplosion() && b.getFrame() == 0 && b.getVictimIndex() == r.getRobotIndex()) {
+						writeFirstExplosionFrame = true;
+						break;
 					}
 				}
+				if (writeFirstExplosionFrame) {
+					rs.writeXml(writer, op);
+				}
 			}
-			writer.endElement();
+		}
+		writer.endElement();
+	}
+
+	private void writeBullets(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.startElement(options.shortAttributes ? "bs" : "bullets");
+		for (IBulletSnapshot b : bullets) {
+			final BulletSnapshot bs = (BulletSnapshot) b;
+			final BulletState state = bs.getState();
+
+			if (!options.skipExploded
+					|| (state != BulletState.EXPLODED && state != BulletState.INACTIVE
+					&& (bs.getFrame() == 0 || state == BulletState.MOVING))) {
+				bs.writeXml(writer, options);
+			}
 		}
 		writer.endElement();
 	}
@@ -248,7 +251,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 				reader.expect("robots", "rs", new XmlReader.ListElement() {
 					public IXmlSerializable read(XmlReader reader) {
-						snapshot.robots = new ArrayList<IRobotSnapshot>();
+						snapshot.robots = new ArrayList<>();
 						// prototype
 						return new RobotSnapshot();
 					}
@@ -278,7 +281,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 				reader.expect("bullets", "bs", new XmlReader.ListElement() {
 					public IXmlSerializable read(XmlReader reader) {
-						snapshot.bullets = new ArrayList<IBulletSnapshot>();
+						snapshot.bullets = new ArrayList<>();
 						// prototype
 						return new BulletSnapshot();
 					}

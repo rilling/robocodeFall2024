@@ -27,6 +27,7 @@ import robocode.control.snapshot.IScoreSnapshot;
 import robocode.control.snapshot.ITurnSnapshot;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -42,8 +43,8 @@ import java.util.zip.ZipOutputStream;
  * @author Pavel Savara (original)
  */
 public class RecordManager implements IRecordManager {
-    protected static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
-    protected static final Calendar calendar = Calendar.getInstance();
+    protected final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    protected final Calendar calendar = Calendar.getInstance();
     protected static final Charset utf8 = StandardCharsets.UTF_8;
 
     protected final ISettingsManager properties;
@@ -67,6 +68,7 @@ public class RecordManager implements IRecordManager {
         this.versionManager = versionManager;
     }
 
+    @Deprecated
     protected void finalize() throws Throwable {
         try {
             cleanup();
@@ -78,9 +80,7 @@ public class RecordManager implements IRecordManager {
     private void cleanup() {
         cleanupStreams();
         if (tempFile != null && tempFile.exists()) {
-            if (!tempFile.delete()) {
-                Logger.logError("Could not delete temp file");
-            }
+            deleteTempFile();
             tempFile = null;
         }
         recordInfo = null;
@@ -110,22 +110,28 @@ public class RecordManager implements IRecordManager {
         recorder.detachRecorder();
     }
 
+    private void deleteTempFile(){
+        try{
+            Files.delete(tempFile.toPath());
+        } catch(IOException e){
+            Logger.logError("Could not delete temp file");
+        }
+    }
+
     private void createTempFile() {
         try {
             if (tempFile == null) {
                 tempFile = File.createTempFile("robocode-battle-records", ".tmp");
                 tempFile.deleteOnExit();
             } else {
-                if (!tempFile.delete()) {
-                    Logger.logError("Could not delete temp file");
-                }
+                deleteTempFile();
                 if (!tempFile.createNewFile()) {
-                    throw new Error("Temp file creation failed");
+                    throw new IOException("Temp file creation failed");
                 }
             }
         } catch (IOException e) {
             logError(e);
-            throw new Error("Temp file creation failed", e);
+            throw new RuntimeException("Temp file creation failed", e);
         }
     }
 
@@ -156,64 +162,58 @@ public class RecordManager implements IRecordManager {
     }
 
     public void loadRecord(String recordFilename, BattleRecordFormat format) {
-        FileInputStream fis = null;
-        BufferedInputStream bis = null;
-        ZipInputStream zis = null;
-        ObjectInputStream ois = null;
-        InputStream xis = null;
+        createTempFile();
 
-        FileOutputStream fos = null;
-        BufferedOutputStream bos = null;
-        ObjectOutputStream oos = null;
-
-        try {
-            createTempFile();
-            fis = new FileInputStream(recordFilename);
-            bis = new BufferedInputStream(fis, 1024 * 1024);
-
+        try (
+                FileInputStream fis = new FileInputStream(recordFilename);
+                BufferedInputStream bis = new BufferedInputStream(fis, 1024 * 1024);
+                ZipInputStream zis = (format == BattleRecordFormat.BINARY_ZIP || format == BattleRecordFormat.XML_ZIP) ? new ZipInputStream(bis) : null;
+                FileOutputStream fos = (format == BattleRecordFormat.BINARY || format == BattleRecordFormat.BINARY_ZIP || format == BattleRecordFormat.XML_ZIP || format == BattleRecordFormat.XML) ? new FileOutputStream(tempFile) : null;
+                BufferedOutputStream bos = (fos != null) ? new BufferedOutputStream(fos, 1024 * 1024) : null;
+                ObjectOutputStream oos = (bos != null && (format == BattleRecordFormat.BINARY || format == BattleRecordFormat.BINARY_ZIP)) ? new ObjectOutputStream(bos) : null
+        ) {
+            // Extracted ternary operation for ObjectInputStream initialization
+            ObjectInputStream ois = null;
             if (format == BattleRecordFormat.BINARY) {
                 ois = new ObjectInputStream(bis);
             } else if (format == BattleRecordFormat.BINARY_ZIP) {
-                zis = new ZipInputStream(bis);
-                zis.getNextEntry();
                 ois = new ObjectInputStream(zis);
-            } else if (format == BattleRecordFormat.XML_ZIP) {
-                zis = new ZipInputStream(bis);
-                zis.getNextEntry();
+            }
+
+            // Extracted ternary operation for InputStream initialization
+            InputStream xis = null;
+            if (format == BattleRecordFormat.XML_ZIP) {
                 xis = zis;
             } else if (format == BattleRecordFormat.XML) {
                 xis = bis;
             }
+
             if (format == BattleRecordFormat.BINARY || format == BattleRecordFormat.BINARY_ZIP) {
                 recordInfo = (BattleRecordInfo) ois.readObject();
-                if (recordInfo.turnsInRounds != null) {
-                    fos = new FileOutputStream(tempFile);
-                    bos = new BufferedOutputStream(fos, 1024 * 1024);
-                    oos = new ObjectOutputStream(bos);
-
-                    for (int i = 0; i < recordInfo.turnsInRounds.length; i++) {
-                        for (int j = recordInfo.turnsInRounds[i] - 1; j >= 0; j--) {
-                            try {
-                                ITurnSnapshot turn = (ITurnSnapshot) ois.readObject();
-
-                                oos.writeObject(turn);
-                            } catch (ClassNotFoundException e) {
-                                logError(e);
+                if (recordInfo.getTurnsInRounds() != null) {
+                    try (ObjectOutputStream finalOos = oos) {
+                        for (int i = 0; i < recordInfo.getTurnsInRounds().length; i++) {
+                            for (int j = recordInfo.getTurnsInRounds()[i] - 1; j >= 0; j--) {
+                                try {
+                                    ITurnSnapshot turn = (ITurnSnapshot) ois.readObject();
+                                    finalOos.writeObject(turn);
+                                } catch (ClassNotFoundException e) {
+                                    logError(e);
+                                }
                             }
                         }
                     }
                 }
-            } else {
+            } else if (format == BattleRecordFormat.XML || format == BattleRecordFormat.XML_ZIP) {
                 final RecordRoot root = new RecordRoot();
-
-                fos = new FileOutputStream(tempFile);
-                bos = new BufferedOutputStream(fos, 1024 * 1024);
-                root.oos = new ObjectOutputStream(bos);
-                XmlReader.deserialize(xis, root);
-                if (root.lastException != null) {
-                    logError(root.lastException);
+                try (ObjectOutputStream xmlOos = new ObjectOutputStream(bos)) {
+                    root.oos = xmlOos;
+                    XmlReader.deserialize(xis, root);
+                    if (root.lastException != null) {
+                        logError(root.lastException);
+                    }
+                    recordInfo = root.recordInfo;
                 }
-                recordInfo = root.recordInfo;
             }
         } catch (IOException e) {
             logError(e);
@@ -227,14 +227,6 @@ public class RecordManager implements IRecordManager {
             }
             createTempFile();
             recordInfo = null;
-        } finally {
-            FileUtil.cleanupStream(oos);
-            FileUtil.cleanupStream(bos);
-            FileUtil.cleanupStream(fos);
-            FileUtil.cleanupStream(ois);
-            FileUtil.cleanupStream(zis);
-            FileUtil.cleanupStream(bis);
-            FileUtil.cleanupStream(fis);
         }
     }
 
@@ -244,10 +236,10 @@ public class RecordManager implements IRecordManager {
             me = this;
         }
 
-        public ObjectOutputStream oos;
-        public IOException lastException;
+        private ObjectOutputStream oos;
+        private IOException lastException;
         public final RecordRoot me;
-        public BattleRecordInfo recordInfo;
+        private BattleRecordInfo recordInfo;
 
         public void writeXml(XmlWriter writer, SerializableOptions options) {
         }
@@ -264,7 +256,7 @@ public class RecordManager implements IRecordManager {
                     }
 
                     public void close() {
-                        innerReader.getContext().put("robots", recordInfo.robotCount);
+                        innerReader.getContext().put("robots", recordInfo.getRobotCount());
                     }
                 });
 
@@ -292,7 +284,7 @@ public class RecordManager implements IRecordManager {
     }
 
     public void saveRecord(String recordFilename, BattleRecordFormat format, SerializableOptions options) {
-        if (recordInfo.turnsInRounds == null) {
+        if (recordInfo.getTurnsInRounds() == null) {
             return;
         }
         if (format == BattleRecordFormat.BINARY_ZIP || format == BattleRecordFormat.BINARY) {
@@ -338,7 +330,7 @@ public class RecordManager implements IRecordManager {
     }
 
     private void saveXmlRecord(String recordFilename, BattleRecordFormat format, SerializableOptions options) {
-        if (recordInfo.turnsInRounds == null) {
+        if (recordInfo.getTurnsInRounds() == null) {
             return;
         }
 
@@ -391,80 +383,58 @@ public class RecordManager implements IRecordManager {
     }
 
     protected void saveCsvRecord(String recordFilename, SerializableOptions options) {
-        FileOutputStream fosResults = null;
-        FileOutputStream fosRounds = null;
-        FileOutputStream fosBullets = null;
-        FileOutputStream fosRobots = null;
-
-        try {
-            fosResults = new FileOutputStream(recordFilename + ".results.csv");
-            fosRounds = new FileOutputStream(recordFilename + ".rounds.csv");
-            fosRobots = new FileOutputStream(recordFilename + ".robots.csv");
-            fosBullets = new FileOutputStream(recordFilename + ".bullets.csv");
-
+        try (
+                FileOutputStream fosResults = new FileOutputStream(recordFilename + ".results.csv");
+                FileOutputStream fosRounds = new FileOutputStream(recordFilename + ".rounds.csv");
+                FileOutputStream fosRobots = new FileOutputStream(recordFilename + ".robots.csv");
+                FileOutputStream fosBullets = new FileOutputStream(recordFilename + ".bullets.csv")) {
             generateCsvRecord(fosResults, fosRounds, fosRobots, fosBullets, options, null);
         } catch (IOException | ClassNotFoundException e) {
             logError(e);
             recorder = new BattleRecorder(this, properties);
             createTempFile();
-        } finally {
-            FileUtil.cleanupStream(fosResults);
-            FileUtil.cleanupStream(fosRounds);
-            FileUtil.cleanupStream(fosBullets);
-            FileUtil.cleanupStream(fosRobots);
         }
     }
 
     public void generateCsvRecord(OutputStream fosResults, OutputStream fosRounds, OutputStream fosRobots, OutputStream fosBullets, SerializableOptions options, CheckedConsumer<ITurnSnapshot> extension) throws IOException, ClassNotFoundException {
-        BufferedOutputStream bosResults = null;
-        OutputStreamWriter oswResults = null;
-
-        BufferedOutputStream bosRounds = null;
-        OutputStreamWriter oswRounds = null;
-
-        BufferedOutputStream bosBullets = null;
-        OutputStreamWriter oswBullets = null;
-
-        BufferedOutputStream bosRobots = null;
-        OutputStreamWriter oswRobots = null;
-
 
         String version = versionManager.getVersion();
 
-        try {
-            bosResults = new BufferedOutputStream(fosResults, 1024 * 1024);
-            oswResults = new OutputStreamWriter(bosResults, utf8);
+        try (
+                BufferedOutputStream bosResults = new BufferedOutputStream(fosResults, 1024 * 1024);
+                OutputStreamWriter oswResults = new OutputStreamWriter(bosResults, utf8);
+                BufferedOutputStream bosRounds = new BufferedOutputStream(fosRounds, 1024 * 1024);
+                OutputStreamWriter oswRounds = new OutputStreamWriter(bosRounds, utf8);
+                BufferedOutputStream bosRobots = new BufferedOutputStream(fosRobots, 1024 * 1024);
+                OutputStreamWriter oswRobots = new OutputStreamWriter(bosRobots, utf8);
+                BufferedOutputStream bosBullets = new BufferedOutputStream(fosBullets, 1024 * 1024);
+                OutputStreamWriter oswBullets = new OutputStreamWriter(bosBullets, utf8)
+        ) {
             CsvWriter cwrResults = new CsvWriter(oswResults, false);
             cwrResults.startDocument("version,battleId,roundsCount,robotCount,battlefieldWidth,battlefieldHeight,gunCoolingRate,inactivityTime,teamLeaderName,rank,score,survival,lastSurvivorBonus,bulletDamage,bulletDamageBonus,ramDamage,ramDamageBonus,firsts,seconds,thirds");
 
-            bosRounds = new BufferedOutputStream(fosRounds, 1024 * 1024);
-            oswRounds = new OutputStreamWriter(bosRounds, utf8);
             CsvWriter cwrRounds = new CsvWriter(oswRounds, false);
             cwrRounds.startDocument("version,battleId,roundIndex,robotCount,battlefieldWidth,battlefieldHeight,gunCoolingRate,inactivityTime,turnsInRound");
 
-            bosRobots = new BufferedOutputStream(fosBullets, 1024 * 1024);
-            oswRobots = new OutputStreamWriter(bosRobots, utf8);
             CsvWriter cwrRobots = new CsvWriter(oswRobots, false);
             cwrRobots.startDocument("version,battleId,roundIndex,turnIndex,robotIndex,robotName,energy,x,y,bodyHeading,gunHeading,radarHeading,gunHeat,velocity,score,survivalScore,bulletDamageScore,bulletKillBonus,rammingDamageScore,rammingKillBonus");
 
-            bosBullets = new BufferedOutputStream(fosRobots, 1024 * 1024);
-            oswBullets = new OutputStreamWriter(bosBullets, utf8);
             CsvWriter cwrBullets = new CsvWriter(oswBullets, false);
             cwrBullets.startDocument("version,battleId,roundIndex,turnIndex,bulletId,ownerIndex,ownerName,state,heading,x,y,victimIndex,victimName");
-            int roundsCount = recordInfo.turnsInRounds.length;
+            int roundsCount = recordInfo.getTurnsInRounds().length;
 
 
             // loop over robots
-            for (BattleResults result : recordInfo.results) {
+            for (BattleResults result : recordInfo.getResults()) {
                 BattleRecordInfo.BattleResultsWrapper wrapper = new BattleRecordInfo.BattleResultsWrapper(result);
                 cwrResults.writeValue(version);
-                cwrResults.writeValue(recordInfo.battleId.toString());
+                cwrResults.writeValue(recordInfo.getBattleId().toString());
                 cwrResults.writeValue(roundsCount);
-                cwrResults.writeValue(recordInfo.robotCount);
-                cwrResults.writeValue(recordInfo.battleRules.getBattlefieldWidth());
-                cwrResults.writeValue(recordInfo.battleRules.getBattlefieldHeight());
-                cwrResults.writeValue(recordInfo.battleRules.getGunCoolingRate(), options.trimPrecision);
-                cwrResults.writeValue(recordInfo.battleRules.getInactivityTime());
+                cwrResults.writeValue(recordInfo.getRobotCount());
+                cwrResults.writeValue(recordInfo.getBattleRules().getBattlefieldWidth());
+                cwrResults.writeValue(recordInfo.getBattleRules().getBattlefieldHeight());
+                cwrResults.writeValue(recordInfo.getBattleRules().getGunCoolingRate(), options.trimPrecision);
+                cwrResults.writeValue(recordInfo.getBattleRules().getInactivityTime());
                 cwrResults.writeValue(wrapper.getTeamLeaderName());
                 cwrResults.writeValue(wrapper.getRank());
                 cwrResults.writeValue(wrapper.getScore(), options.trimPrecision);
@@ -483,15 +453,15 @@ public class RecordManager implements IRecordManager {
 
             // loop over rounds
             for (int round = 0; round < roundsCount; round++) {
-                int turnsInRound = recordInfo.turnsInRounds[round];
+                int turnsInRound = recordInfo.getTurnsInRounds()[round];
                 cwrRounds.writeValue(version);
-                cwrRounds.writeValue(recordInfo.battleId.toString());
+                cwrRounds.writeValue(recordInfo.getBattleId().toString());
                 cwrRounds.writeValue(round);
-                cwrRounds.writeValue(recordInfo.robotCount);
-                cwrRounds.writeValue(recordInfo.battleRules.getBattlefieldWidth());
-                cwrRounds.writeValue(recordInfo.battleRules.getBattlefieldHeight());
-                cwrRounds.writeValue(recordInfo.battleRules.getGunCoolingRate(), options.trimPrecision);
-                cwrRounds.writeValue(recordInfo.battleRules.getInactivityTime());
+                cwrRounds.writeValue(recordInfo.getRobotCount());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getBattlefieldWidth());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getBattlefieldHeight());
+                cwrRounds.writeValue(recordInfo.getBattleRules().getGunCoolingRate(), options.trimPrecision);
+                cwrRounds.writeValue(recordInfo.getBattleRules().getInactivityTime());
                 cwrRounds.writeValue(turnsInRound);
                 cwrRounds.endLine();
             }
@@ -506,7 +476,7 @@ public class RecordManager implements IRecordManager {
                     RobotSnapshot robotSnapshot = (RobotSnapshot) robot;
                     IScoreSnapshot scoreSnapshot = robotSnapshot.getScoreSnapshot();
                     cwrRobots.writeValue(version);
-                    cwrRobots.writeValue(recordInfo.battleId.toString());
+                    cwrRobots.writeValue(recordInfo.getBattleId().toString());
                     cwrRobots.writeValue(turn.getRound());
                     cwrRobots.writeValue(turn.getTurn());
                     cwrRobots.writeValue(robotSnapshot.getRobotIndex());
@@ -531,7 +501,7 @@ public class RecordManager implements IRecordManager {
                     BulletSnapshot bulletSnapshot = (BulletSnapshot) bullet;
                     IRobotSnapshot owner = robots[bulletSnapshot.getOwnerIndex()];
                     cwrBullets.writeValue(version);
-                    cwrBullets.writeValue(recordInfo.battleId.toString());
+                    cwrBullets.writeValue(recordInfo.getBattleId().toString());
                     cwrBullets.writeValue(turn.getRound());
                     cwrBullets.writeValue(turn.getTurn());
                     cwrBullets.writeValue(bulletSnapshot.getBulletId());
@@ -547,40 +517,22 @@ public class RecordManager implements IRecordManager {
                 }
             });
 
-
-        } finally {
-            FileUtil.cleanupStream(oswResults);
-            FileUtil.cleanupStream(bosResults);
-
-            FileUtil.cleanupStream(oswRounds);
-            FileUtil.cleanupStream(bosRounds);
-
-            FileUtil.cleanupStream(oswBullets);
-            FileUtil.cleanupStream(bosBullets);
-
-            FileUtil.cleanupStream(oswRobots);
-            FileUtil.cleanupStream(bosRobots);
         }
     }
 
     @Override
     public void provideTurns(CheckedConsumer<ITurnSnapshot> writeTurn) throws IOException, ClassNotFoundException {
-        FileInputStream fis = null;
-        BufferedInputStream bis = null;
-        ObjectInputStream ois = null;
+        try (FileInputStream fis = new FileInputStream(tempFile);
+             BufferedInputStream bis = new BufferedInputStream(fis, 1024 * 1024);
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
 
-        try {
-            fis = new FileInputStream(tempFile);
-            bis = new BufferedInputStream(fis, 1024 * 1024);
-            ois = new ObjectInputStream(bis);
-
-            for (int i = 0; i < recordInfo.turnsInRounds.length; i++) {
-                if (recordInfo.turnsInRounds[i] > 0) {
-                    for (int j = 0; j <= recordInfo.turnsInRounds[i] - 1; j++) {
+            for (int i = 0; i < recordInfo.getTurnsInRounds().length; i++) {
+                if (recordInfo.getTurnsInRounds()[i] > 0) {
+                    for (int j = 0; j <= recordInfo.getTurnsInRounds()[i] - 1; j++) {
                         TurnSnapshot turn = (TurnSnapshot) ois.readObject();
 
                         if (j != turn.getTurn()) {
-                            throw new Error("Something rotten");
+                            throw new IllegalStateException("Something rotten");
                         }
 
                         writeTurn.accept(turn);
@@ -588,10 +540,6 @@ public class RecordManager implements IRecordManager {
                 }
             }
 
-        } finally {
-            FileUtil.cleanupStream(ois);
-            FileUtil.cleanupStream(bis);
-            FileUtil.cleanupStream(fis);
         }
     }
 
@@ -611,29 +559,29 @@ public class RecordManager implements IRecordManager {
         }
 
         recordInfo = new BattleRecordInfo();
-        recordInfo.battleId = battleId;
-        recordInfo.robotCount = numRobots;
-        recordInfo.battleRules = rules;
-        recordInfo.turnsInRounds = new Integer[rules.getNumRounds()];
+        recordInfo.setBattleId(battleId);
+        recordInfo.setRobotCount(numRobots);
+        recordInfo.setBattleRules(rules);
+        recordInfo.setTurnsInRounds(new Integer[rules.getNumRounds()]);
         for (int i = 0; i < rules.getNumRounds(); i++) {
-            recordInfo.turnsInRounds[i] = 0;
+            recordInfo.getTurnsInRounds()[i] = 0;
         }
     }
 
     void updateRecordInfoResults(List<BattleResults> results) {
-        recordInfo.results = results;
+        recordInfo.setResults(results);
     }
 
     void writeTurn(ITurnSnapshot turn, int round, int time) {
         try {
-            if (time != recordInfo.turnsInRounds[round]) {
-                throw new Error("Something rotten");
+            if (time != recordInfo.getTurnsInRounds()[round]) {
+                throw new IllegalStateException("Something rotten");
             }
             if (time == 0) {
                 objectWriteStream.reset();
             }
-            recordInfo.turnsInRounds[round]++;
-            recordInfo.roundsCount = round + 1;
+            recordInfo.getTurnsInRounds()[round]++;
+            recordInfo.setRoundsCount(round + 1);
             objectWriteStream.writeObject(turn);
         } catch (IOException e) {
             logError(e);
