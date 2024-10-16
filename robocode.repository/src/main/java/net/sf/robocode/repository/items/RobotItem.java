@@ -426,7 +426,7 @@ public class RobotItem extends RobotSpecItem implements IRobotItem {
 	}
 
 	private void saveProperties() {
-		File file = new File(root.getPath(), className.replaceAll("\\.", "/") + PROPERTIES_EXTENSION);
+		File file = new File(root.getPath(), className.replace("\\.", "/") + PROPERTIES_EXTENSION);
 		FileOutputStream fos = null;
 
 		try {
