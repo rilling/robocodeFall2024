@@ -403,6 +403,7 @@ public abstract class BaseBattle implements IBattle, Runnable {
 	}
 
 	private class PauseCommand extends Command {
+		@Override
 		public void execute() {
 			pauseImpl();
 		}

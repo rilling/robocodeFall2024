@@ -448,64 +448,66 @@ public final class RobotSnapshot implements Serializable, IXmlSerializable, IRob
 	 * {@inheritDoc}
 	 */
 	public void writeXml(XmlWriter writer, SerializableOptions options) throws IOException {
-		writer.startElement(options.shortAttributes ? "r" : "robot"); {
-			writer.writeAttribute("id", robotIndex);
-			if (!options.skipNames) {
-				writer.writeAttribute("vsName", veryShortName);
-			}
-			if (!options.skipExploded || state != RobotState.ACTIVE) {
-				writer.writeAttribute(options.shortAttributes ? "s" : "state", state.toString());
-			}
-			writer.writeAttribute(options.shortAttributes ? "e" : "energy", energy, options.trimPrecision);
-			writer.writeAttribute("x", x, options.trimPrecision);
-			writer.writeAttribute("y", y, options.trimPrecision);
-			writer.writeAttribute(options.shortAttributes ? "b" : "bodyHeading", bodyHeading, options.trimPrecision);
-			writer.writeAttribute(options.shortAttributes ? "g" : "gunHeading", gunHeading, options.trimPrecision);
-			writer.writeAttribute(options.shortAttributes ? "r" : "radarHeading", radarHeading, options.trimPrecision);
-			writer.writeAttribute(options.shortAttributes ? "h" : "gunHeat", gunHeat, options.trimPrecision);
-			writer.writeAttribute(options.shortAttributes ? "v" : "velocity", velocity, options.trimPrecision);
-			if (!options.skipNames) {
-				writer.writeAttribute("teamName", teamName);
-				writer.writeAttribute("name", name);
-				writer.writeAttribute("sName", shortName);
-				if (isDroid) {
-					writer.writeAttribute("isDroid", true);
-				}
-				if (bodyColor != ExecCommands.defaultBodyColor) {
-					writer.writeAttribute("bodyColor", Integer.toHexString(bodyColor).toUpperCase());
-				}
-				if (gunColor != ExecCommands.defaultGunColor) {
-					writer.writeAttribute("gunColor", Integer.toHexString(gunColor).toUpperCase());
-				}
-				if (radarColor != ExecCommands.defaultRadarColor) {
-					writer.writeAttribute("radarColor", Integer.toHexString(radarColor).toUpperCase());
-				}
-				if (scanColor != ExecCommands.defaultScanColor) {
-					writer.writeAttribute("scanColor", Integer.toHexString(scanColor).toUpperCase());
-				}
-			}
-			if (!options.skipVersion) {
-				writer.writeAttribute("ver", serialVersionUID);
-			}
-			if (!options.skipDebug) {
-				if (outputStreamSnapshot != null && outputStreamSnapshot.length() != 0) {
-					writer.writeAttribute("out", outputStreamSnapshot);
-				}
-				if (debugProperties != null) {
-					writer.startElement("debugProperties"); {
-						for (DebugProperty prop : debugProperties) {
-							prop.writeXml(writer, options);
-						}
-					}
-					writer.endElement();
-				}
-			}
-
-			((ScoreSnapshot) robotScoreSnapshot).writeXml(writer, options);
-		}
+		writer.startElement(options.shortAttributes ? "r" : "robot");
+		writeAttributes(writer, options);
 		writer.endElement();
-
 	}
+
+	private void writeAttributes(XmlWriter writer, SerializableOptions options) throws IOException {
+		writer.writeAttribute("id", robotIndex);
+		if (!options.skipNames) {
+			writer.writeAttribute("vsName", veryShortName);
+		}
+		if (!options.skipExploded || state != RobotState.ACTIVE) {
+			writer.writeAttribute(options.shortAttributes ? "s" : "state", state.toString());
+		}
+		writer.writeAttribute(options.shortAttributes ? "e" : "energy", energy, options.trimPrecision);
+		writer.writeAttribute("x", x, options.trimPrecision);
+		writer.writeAttribute("y", y, options.trimPrecision);
+		writer.writeAttribute(options.shortAttributes ? "b" : "bodyHeading", bodyHeading, options.trimPrecision);
+		writer.writeAttribute(options.shortAttributes ? "g" : "gunHeading", gunHeading, options.trimPrecision);
+		writer.writeAttribute(options.shortAttributes ? "r" : "radarHeading", radarHeading, options.trimPrecision);
+		writer.writeAttribute(options.shortAttributes ? "h" : "gunHeat", gunHeat, options.trimPrecision);
+		writer.writeAttribute(options.shortAttributes ? "v" : "velocity", velocity, options.trimPrecision);
+		if (!options.skipNames) {
+			writer.writeAttribute("teamName", teamName);
+			writer.writeAttribute("name", name);
+			writer.writeAttribute("sName", shortName);
+			if (isDroid) {
+				writer.writeAttribute("isDroid", true);
+			}
+			if (bodyColor != ExecCommands.defaultBodyColor) {
+				writer.writeAttribute("bodyColor", Integer.toHexString(bodyColor).toUpperCase());
+			}
+			if (gunColor != ExecCommands.defaultGunColor) {
+				writer.writeAttribute("gunColor", Integer.toHexString(gunColor).toUpperCase());
+			}
+			if (radarColor != ExecCommands.defaultRadarColor) {
+				writer.writeAttribute("radarColor", Integer.toHexString(radarColor).toUpperCase());
+			}
+			if (scanColor != ExecCommands.defaultScanColor) {
+				writer.writeAttribute("scanColor", Integer.toHexString(scanColor).toUpperCase());
+			}
+		}
+		if (!options.skipVersion) {
+			writer.writeAttribute("ver", serialVersionUID);
+		}
+		if (!options.skipDebug) {
+			if (outputStreamSnapshot != null && outputStreamSnapshot.length() != 0) {
+				writer.writeAttribute("out", outputStreamSnapshot);
+			}
+			if (debugProperties != null) {
+				writer.startElement("debugProperties");
+				for (DebugProperty prop : debugProperties) {
+					prop.writeXml(writer, options);
+				}
+				writer.endElement();
+			}
+		}
+
+		((ScoreSnapshot) robotScoreSnapshot).writeXml(writer, options);
+	}
+
 
 	// allows loading of minimalistic XML
 	RobotSnapshot(String robotName, int robotIndex, RobotState state) {
