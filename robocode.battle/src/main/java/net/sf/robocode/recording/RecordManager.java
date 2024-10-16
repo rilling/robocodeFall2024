@@ -110,10 +110,10 @@ public class RecordManager implements IRecordManager {
         recorder.detachRecorder();
     }
 
-    private void deleteTempFile(){
-        try{
+    private void deleteTempFile() {
+        try {
             Files.delete(tempFile.toPath());
-        } catch(IOException e){
+        } catch (IOException e) {
             Logger.logError("Could not delete temp file");
         }
     }

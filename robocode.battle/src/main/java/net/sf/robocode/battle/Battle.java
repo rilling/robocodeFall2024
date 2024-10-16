@@ -738,7 +738,7 @@ public final class Battle extends BaseBattle {
 				positions.add(pos);
 			}
 		}
-		if (positions.size() == 0) {
+		if (positions.isEmpty()) {
 			return;
 		}
 
