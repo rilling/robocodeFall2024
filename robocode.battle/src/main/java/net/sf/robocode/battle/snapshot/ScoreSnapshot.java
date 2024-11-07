@@ -14,6 +14,7 @@ import robocode.control.snapshot.IScoreSnapshot;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Objects;
 
 
 /**
@@ -433,46 +434,28 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 			}
 		});
 	}
-
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-
-		temp = Double.doubleToLongBits(currentBulletDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentBulletKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentRammingDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentRammingKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentSurvivalBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentSurvivalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		temp = Double.doubleToLongBits(totalBulletDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalBulletKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalFirsts;
-		temp = Double.doubleToLongBits(totalLastSurvivorBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalRammingDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalRammingKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalSeconds;
-		temp = Double.doubleToLongBits(totalSurvivalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalThirds;
-		return result;
+		return Objects.hash(
+				currentBulletDamageScore,
+				currentBulletKillBonus,
+				currentRammingDamageScore,
+				currentRammingKillBonus,
+				currentScore,
+				currentSurvivalBonus,
+				currentSurvivalScore,
+				name,
+				totalBulletDamageScore,
+				totalBulletKillBonus,
+				totalFirsts,
+				totalLastSurvivorBonus,
+				totalRammingDamageScore,
+				totalRammingKillBonus,
+				totalScore,
+				totalSeconds,
+				totalSurvivalScore,
+				totalThirds
+		);
 	}
 
 	@Override
