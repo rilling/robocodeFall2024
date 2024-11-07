@@ -185,7 +185,7 @@ public class BattleManager implements IBattleManager {
 		}
 		logMessage("Preparing replay...");
 
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.stop(true);
 		}
 
@@ -299,7 +299,7 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void stop(boolean waitTillEnd) {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.stop(waitTillEnd);
 		}
 		if (hostManager != null && battleThread != null) {
@@ -331,7 +331,7 @@ public class BattleManager implements IBattleManager {
 
 	public synchronized void pauseBattle() {
 		if (++pauseCount == 1) {
-			if (battle != null && battle.isRunning()) {
+			if (battleIsRunning(battle)) {
 				battle.pause();
 			} else {
 				battleEventDispatcher.onBattlePaused(new BattlePausedEvent());
@@ -342,7 +342,7 @@ public class BattleManager implements IBattleManager {
 	public synchronized void pauseIfResumedBattle() {
 		if (pauseCount == 0) {
 			pauseCount++;
-			if (battle != null && battle.isRunning()) {
+			if (battleIsRunning(battle)) {
 				battle.pause();
 			} else {
 				battleEventDispatcher.onBattlePaused(new BattlePausedEvent());
@@ -353,7 +353,7 @@ public class BattleManager implements IBattleManager {
 	public synchronized void resumeIfPausedBattle() {
 		if (pauseCount == 1) {
 			pauseCount--;
-			if (battle != null && battle.isRunning()) {
+			if (battleIsRunning(battle)) {
 				battle.resume();
 			} else {
 				battleEventDispatcher.onBattleResumed(new BattleResumedEvent());
@@ -366,7 +366,7 @@ public class BattleManager implements IBattleManager {
 			pauseCount = 0;
 			logError("SYSTEM: pause game bug!");
 		} else if (pauseCount == 0) {
-			if (battle != null && battle.isRunning()) {
+			if (battleIsRunning(battle)) {
 				battle.resume();
 			} else {
 				battleEventDispatcher.onBattleResumed(new BattleResumedEvent());
@@ -378,38 +378,42 @@ public class BattleManager implements IBattleManager {
 	 * Steps for a single turn, then goes back to paused
 	 */
 	public synchronized void nextTurn() {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.step();
 		}
 	}
 
 	public synchronized void prevTurn() {
-		if (battle != null && battle.isRunning() && battle instanceof BattlePlayer) {
+		if (battleIsRunning(battle) && battle instanceof BattlePlayer) {
 			((BattlePlayer) battle).stepBack();
 		}
 	}
 
 	public synchronized void killRobot(int robotIndex) {
-		if (battle != null && battle.isRunning() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && battle instanceof Battle) {
 			((Battle) battle).killRobot(robotIndex);
 		}
 	}
 
 	public synchronized void setPaintEnabled(int robotIndex, boolean enable) {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.setPaintEnabled(robotIndex, enable);
 		}
 	}
 
 	public synchronized void setSGPaintEnabled(int robotIndex, boolean enable) {
-		if (battle != null && battle.isRunning() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && battle instanceof Battle) {
 			((Battle) battle).setSGPaintEnabled(robotIndex, enable);
 		}
 	}
 
 	public synchronized void sendInteractiveEvent(Event event) {
-		if (battle != null && battle.isRunning() && !isPaused() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && !isPaused() && battle instanceof Battle) {
 			((Battle) battle).sendInteractiveEvent(event);
 		}
+	}
+
+	private static boolean battleIsRunning(IBattle battle) {
+		return battle != null && battle.isRunning();
 	}
 }
