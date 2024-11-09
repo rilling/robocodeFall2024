@@ -998,7 +998,11 @@ public class AdvancedRobot extends _AdvancedRadiansRobot implements IAdvancedRob
 	/**
 	 * {@inheritDoc}
 	 */
-	public void onCustomEvent(CustomEvent event) {}
+	@Override
+	public void onCustomEvent(CustomEvent event) {
+		throw new UnsupportedOperationException("This method is not supported.");
+	}
+
 
 	/**
 	 * Sets the priority of a class of events.
