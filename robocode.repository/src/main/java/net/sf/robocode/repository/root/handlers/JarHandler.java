@@ -45,7 +45,7 @@ public class JarHandler extends RootHandler {
 				try {
 					key = "jar:" + jar.toURI().toURL() + "!/";
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					Logger.logError("An error occurred: " + e.getMessage());
 					continue;
 				}
 				IRepositoryRoot root = repository.getRoots().get(key);

@@ -18,10 +18,10 @@ import java.util.Properties;
  * @author Mathew A. Nelson (original)
  */
 public class CompilerProperties {
-	public final static String COMPILER_BINARY = "compiler.binary";
-	public final static String COMPILER_OPTIONS = "compiler.options";
-	public final static String COMPILER_CLASSPATH = "compiler.classpath";
-	public final static String ROBOCODE_VERSION = "robocode.version";
+	public static final String COMPILER_BINARY = "compiler.binary";
+	public static final String COMPILER_OPTIONS = "compiler.options";
+	public static final String COMPILER_CLASSPATH = "compiler.classpath";
+	public static final String ROBOCODE_VERSION = "robocode.version";
 
 	private String compilerBinary;
 	private String compilerOptions;

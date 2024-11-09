@@ -395,62 +395,91 @@ public final class Battle extends BaseBattle {
 	@Override
 	protected void shutdownTurn() {
 		if (endTimer == 0) {
-			if (isAborted()) {
-				for (RobotPeer robotPeer : getRobotsAtRandom()) {
-					if (robotPeer.isAlive()) {
-						robotPeer.println("SYSTEM: game aborted.");
-					}
-				}
-			} else if (oneTeamRemaining()) {
-				boolean leaderFirsts = false;
-				TeamPeer winningTeam = null;
-
-				robocode.RoundEndedEvent roundEndedEvent = new robocode.RoundEndedEvent(getRoundNum(), currentTime,
-						totalTurns); 
-
-				for (RobotPeer robotPeer : getRobotsAtRandom()) {
-					robotPeer.addEvent(roundEndedEvent);
-					if (robotPeer.isAlive() && !robotPeer.isWinner() && !robotPeer.isSentryRobot()) {
-						robotPeer.getRobotStatistics().scoreLastSurvivor();
-						robotPeer.setWinner(true);
-						robotPeer.println("SYSTEM: " + robotPeer.getNameForEvent(robotPeer) + " wins the round.");
-						robotPeer.addEvent(new WinEvent());
-						if (robotPeer.getTeamPeer() != null) {
-							if (robotPeer.isTeamLeader()) {
-								leaderFirsts = true;
-							} else {
-								winningTeam = robotPeer.getTeamPeer();
-							}
-						}
-					}
-					// Generate totals as round has ended, but first when the last scores has been calculated
-					robotPeer.getRobotStatistics().generateTotals();
-				}
-				if (!leaderFirsts && winningTeam != null) {
-					winningTeam.getTeamLeader().getRobotStatistics().scoreFirsts();
-				}
-			}
-			if (isAborted() || isLastRound()) {
-				List<RobotPeer> orderedRobots = new ArrayList<>(robots);
-				Collections.sort(orderedRobots);
-				Collections.reverse(orderedRobots);
-
-				for (int rank = 0; rank < robots.size(); rank++) {
-					RobotPeer robotPeer = orderedRobots.get(rank);
-					robotPeer.getStatistics().setRank(rank + 1);
-					BattleResults battleResults = robotPeer.getStatistics().getFinalResults();
-					robotPeer.addEvent(new BattleEndedEvent(isAborted(), battleResults));
-				}
-			}
+			handleEndOfBattle();
 		}
 
 		if (endTimer > 4 * TURNS_DISPLAYED_AFTER_ENDING) {
-			for (RobotPeer robotPeer : robots) {
-				robotPeer.setHalt(true);
-			}
+			haltAllRobots();
 		}
 
 		super.shutdownTurn();
+	}
+
+	private void handleEndOfBattle() {
+		if (isAborted()) {
+			handleGameAborted();
+			processBattleResults();
+			return;
+		}
+
+		if (oneTeamRemaining()) {
+			handleOneTeamRemaining();
+		}
+
+		if (isLastRound()) {
+			processBattleResults();
+		}
+	}
+
+	private void haltAllRobots() {
+		for (RobotPeer robotPeer : robots) {
+			robotPeer.setHalt(true);
+		}
+	}
+
+	private void handleGameAborted() {
+		for (RobotPeer robotPeer : getRobotsAtRandom()) {
+			if (robotPeer.isAlive()) {
+				robotPeer.println("SYSTEM: game aborted.");
+			}
+		}
+	}
+
+	private void processBattleResults() {
+		List<RobotPeer> orderedRobots = new ArrayList<>(robots);
+		Collections.sort(orderedRobots);
+		Collections.reverse(orderedRobots);
+
+		for (int rank = 0; rank < robots.size(); rank++) {
+			RobotPeer robotPeer = orderedRobots.get(rank);
+			robotPeer.getStatistics().setRank(rank + 1);
+			BattleResults battleResults = robotPeer.getStatistics().getFinalResults();
+			robotPeer.addEvent(new BattleEndedEvent(isAborted(), battleResults));
+		}
+	}
+
+	private void handleOneTeamRemaining() {
+		boolean leaderFirsts = false;
+		TeamPeer winningTeam = null;
+
+		robocode.RoundEndedEvent roundEndedEvent = new robocode.RoundEndedEvent(getRoundNum(), currentTime,
+				totalTurns);
+
+		for (RobotPeer robotPeer : getRobotsAtRandom()) {
+			robotPeer.addEvent(roundEndedEvent);
+			if (robotPeer.isAlive() && !robotPeer.isWinner() && !robotPeer.isSentryRobot()) {
+				processWinningRobot(robotPeer);
+				if (robotPeer.getTeamPeer() != null) {
+					if (robotPeer.isTeamLeader()) {
+						leaderFirsts = true;
+					} else {
+						winningTeam = robotPeer.getTeamPeer();
+					}
+				}
+			}
+			// Generate totals as round has ended, but first when the last scores has been calculated
+			robotPeer.getRobotStatistics().generateTotals();
+		}
+		if (!leaderFirsts && winningTeam != null) {
+			winningTeam.getTeamLeader().getRobotStatistics().scoreFirsts();
+		}
+	}
+
+	private static void processWinningRobot(RobotPeer robotPeer) {
+		robotPeer.getRobotStatistics().scoreLastSurvivor();
+		robotPeer.setWinner(true);
+		robotPeer.println("SYSTEM: " + robotPeer.getNameForEvent(robotPeer) + " wins the round.");
+		robotPeer.addEvent(new WinEvent());
 	}
 
 	@Override
@@ -687,6 +716,10 @@ public final class Battle extends BaseBattle {
 		return count;
 	}
 
+	private String stripNonNumericCharacters(String input) {
+    		return input.replaceAll("[^0-9.]", "");
+	}
+
 	private void computeInitialPositions(String initialPositions) {
 		initialRobotSetups = null;
 
@@ -705,7 +738,7 @@ public final class Battle extends BaseBattle {
 				positions.add(pos);
 			}
 		}
-		if (positions.size() == 0) {
+		if (positions.isEmpty()) {
 			return;
 		}
 
@@ -729,17 +762,17 @@ public final class Battle extends BaseBattle {
 
 			if (len >= 1 && coords[0].trim().length() > 0) {
 				try {
-					x = Double.parseDouble(coords[0].replaceAll("[^0-9.]", ""));
+					x = Double.parseDouble(stripNonNumericCharacters(coords[0]));
 				} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 				}
 				if (len >= 2 && coords[1].trim().length() > 0) {
 					try {
-						y = Double.parseDouble(coords[1].replaceAll("[^0-9.]", ""));
+						y = Double.parseDouble(stripNonNumericCharacters(coords[1]));
 					} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 					}
 					if (len >= 3 && coords[2].trim().length() > 0) {
 						try {
-							heading = Math.toRadians(Double.parseDouble(coords[2].replaceAll("[^0-9.]", "")));
+							heading = Math.toRadians(Double.parseDouble(stripNonNumericCharacters(coords[2])));
 						} catch (NumberFormatException ignore) {// Could be the '?', which is fine
 						}
 					}
