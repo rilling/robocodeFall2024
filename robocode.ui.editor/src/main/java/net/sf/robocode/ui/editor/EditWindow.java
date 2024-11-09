@@ -8,7 +8,6 @@
 package net.sf.robocode.ui.editor;
 
 
-import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.repository.IRepositoryManager;
 import net.sf.robocode.ui.editor.theme.EditorThemeProperties;
@@ -40,6 +39,8 @@ import java.util.StringTokenizer;
 @SuppressWarnings("serial")
 public class EditWindow extends JInternalFrame {
 
+	private static final String EXTENSION_JAVA = ".java";
+
 	private String fileName;
 	private String robotName;
 	public boolean modified;
@@ -64,7 +65,7 @@ public class EditWindow extends JInternalFrame {
 
 			// FIXME: Replace hack with better solution than using 'ctrl H'
 			im.put(KeyStroke.getKeyStroke("ctrl H"), editor.getReplaceAction());
-		}	
+		}
 		return editorPane;
 	}
 
@@ -113,12 +114,7 @@ public class EditWindow extends JInternalFrame {
 			editorPanel.setFont(font);
 
 			// Make sure the source editor window gets focus with a blinking cursor
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					editorPanel.getEditorPane().requestFocus();
-				}
-			});
+			SwingUtilities.invokeLater(() -> editorPanel.getEditorPane().requestFocus());
 
 			EditorThemePropertiesManager.addListener(new EditorThemePropertyChangeAdapter() {
 				@Override
@@ -278,22 +274,15 @@ public class EditWindow extends JInternalFrame {
 			}
 		}
 
-		BufferedWriter bufferedWriter = null;
-		OutputStreamWriter outputStreamWriter = null;
-		FileOutputStream fileOutputStream = null;
-
-		try {
-			fileOutputStream = new FileOutputStream(fileName);
-			outputStreamWriter = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8);
-			bufferedWriter = new BufferedWriter(outputStreamWriter);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+			 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8);
+			 BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter)) {
 
 			getEditorPane().write(bufferedWriter);
 			setModified(false);
 		} catch (IOException e) {
 			error("Cannot write file: " + e);
 			return false;
-		} finally {
-			FileUtil.cleanupStream(bufferedWriter);
 		}
 		return true;
 	}
@@ -317,7 +306,7 @@ public class EditWindow extends JInternalFrame {
 		}
 		return saveDir;
 	}
-	
+
 	public boolean fileSaveAs() {
 		String javaFileName = null;
 		String saveDir = getRobotDir();
@@ -335,11 +324,11 @@ public class EditWindow extends JInternalFrame {
 				if (pEIndex2 > 0 && pEIndex2 < pEIndex) {
 					pEIndex = pEIndex2;
 				}
-				javaFileName = text.substring(pIndex + 13, pEIndex).trim() + ".java";
+				javaFileName = text.substring(pIndex + 13, pEIndex).trim() + EXTENSION_JAVA;
 			} else {
 				pEIndex = text.indexOf("\n", pIndex + 13);
 				if (pEIndex > 0) {
-					javaFileName = text.substring(pIndex + 13, pEIndex).trim() + ".java";
+					javaFileName = text.substring(pIndex + 13, pEIndex).trim() + EXTENSION_JAVA;
 				}
 			}
 		}
@@ -382,7 +371,7 @@ public class EditWindow extends JInternalFrame {
 				if (idx >= 0) {
 					extension = fn.substring(idx);
 				}
-				return extension.equalsIgnoreCase(".java");
+				return extension.equalsIgnoreCase(EXTENSION_JAVA);
 			}
 
 			@Override
@@ -476,7 +465,7 @@ public class EditWindow extends JInternalFrame {
 				fileName.append(packageTree);
 			}
 			if (token.equals("class")) {
-				javaFileName = tokenizer.nextToken() + ".java";
+				javaFileName = tokenizer.nextToken() + EXTENSION_JAVA;
 				fileName.append(javaFileName);
 				return fileName.toString();
 			}

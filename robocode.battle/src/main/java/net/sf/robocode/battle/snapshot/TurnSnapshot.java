@@ -34,6 +34,8 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String ROBOTS_XML_ELEMENT_NAME = "robots";
+
 	/** List of snapshots for the robots participating in the battle */
 	private List<IRobotSnapshot> robots;
 
@@ -188,7 +190,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 	}
 
 	private void writeRobots(XmlWriter writer, SerializableOptions options) throws IOException {
-		writer.startElement(options.shortAttributes ? "rs" : "robots");
+		writer.startElement(options.shortAttributes ? "rs" : ROBOTS_XML_ELEMENT_NAME);
 		SerializableOptions op = options;
 
 		if (turn == 0) {
@@ -249,7 +251,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 					}
 				});
 
-				reader.expect("robots", "rs", new XmlReader.ListElement() {
+				reader.expect(ROBOTS_XML_ELEMENT_NAME, "rs", new XmlReader.ListElement() {
 					public IXmlSerializable read(XmlReader reader) {
 						snapshot.robots = new ArrayList<>();
 						// prototype
@@ -263,7 +265,7 @@ public final class TurnSnapshot implements java.io.Serializable, IXmlSerializabl
 					public void close() {
 						// allows loading of minimalistic XML, which skips dead robots, but GUI expects them
 						Map<String, Object> context = reader.getContext();
-						Integer robotCount = (Integer) context.get("robots");
+						Integer robotCount = (Integer) context.get(ROBOTS_XML_ELEMENT_NAME);
 						boolean[] present = new boolean[robotCount];
 
 						for (IRobotSnapshot robot : snapshot.robots) {

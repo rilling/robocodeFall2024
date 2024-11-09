@@ -27,6 +27,7 @@ import robocode.control.snapshot.IScoreSnapshot;
 import robocode.control.snapshot.ITurnSnapshot;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -79,9 +80,7 @@ public class RecordManager implements IRecordManager {
     private void cleanup() {
         cleanupStreams();
         if (tempFile != null && tempFile.exists()) {
-            if (!tempFile.delete()) {
-                Logger.logError("Could not delete temp file");
-            }
+            deleteTempFile();
             tempFile = null;
         }
         recordInfo = null;
@@ -111,15 +110,21 @@ public class RecordManager implements IRecordManager {
         recorder.detachRecorder();
     }
 
+    private void deleteTempFile() {
+        try {
+            Files.delete(tempFile.toPath());
+        } catch (IOException e) {
+            Logger.logError("Could not delete temp file");
+        }
+    }
+
     private void createTempFile() {
         try {
             if (tempFile == null) {
                 tempFile = File.createTempFile("robocode-battle-records", ".tmp");
                 tempFile.deleteOnExit();
             } else {
-                if (!tempFile.delete()) {
-                    Logger.logError("Could not delete temp file");
-                }
+                deleteTempFile();
                 if (!tempFile.createNewFile()) {
                     throw new IOException("Temp file creation failed");
                 }

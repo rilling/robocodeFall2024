@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
@@ -32,7 +33,19 @@ public class ClasspathFileParser {
 
 	public void parse(URL url) {
 		try {
-			SAXParserFactory.newInstance().newSAXParser().parse(url.toString(), classpathHandler);
+			
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+
+		
+			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
+		
+			SAXParser saxParser = factory.newSAXParser();
+
+			
+			saxParser.parse(url.toString(), classpathHandler);
 		} catch (SAXException ignore) {} catch (IOException ignore) {} catch (ParserConfigurationException ignore) {}
 	}
 
