@@ -1314,55 +1314,19 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		if (currentCommands.getBodyTurnRemaining() > 0) {
 			if (currentCommands.getBodyTurnRemaining() < turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading += turnRate;
-				gunHeading += turnRate;
-				radarHeading += turnRate;
+				adjustHeadings(turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() - turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRate);
-				}
 			}
 		} else if (currentCommands.getBodyTurnRemaining() < 0) {
 			if (currentCommands.getBodyTurnRemaining() > -turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading -= turnRate;
-				gunHeading -= turnRate;
-				radarHeading -= turnRate;
+				adjustHeadings(-turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() + turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() + turnRate);
-				}
 			}
 		} else {
 			normalizeHeading = false;
@@ -1759,6 +1723,20 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 			return 1;
 		}
 		return 0;
+	}
+
+	private void adjustHeadings(double turnRemaining) {
+
+		bodyHeading += turnRemaining;
+		gunHeading += turnRemaining;
+		radarHeading += turnRemaining;
+
+		if (currentCommands.isAdjustGunForBodyTurn()) {
+			currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRemaining);
+		}
+		if (currentCommands.isAdjustRadarForBodyTurn()) {
+			currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRemaining);
+		}
 	}
 
 	@Override
