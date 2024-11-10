@@ -1133,18 +1133,22 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				y = maxY;
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
+	}
+
+	private void updateStatusForHitWallEvent() {
+		// Update energy, but do not reset inactiveTurnCount
+		if (statics.isAdvancedRobot()) {
+			setEnergy(energy - Rules.getWallHitDamage(velocity), false);
+		}
+
+		updateBoundingBox();
+
+		currentCommands.setDistanceRemaining(0);
+		velocity = 0;
+
+		setState(RobotState.HIT_WALL);
 	}
 
 	private void checkSentryOutsideBorder() {
@@ -1160,7 +1164,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		double angle = 0;
 
 		boolean isOutsideBorder = x > minX && x < maxX && y > minY && y < maxY;
-		
+
 		if (isOutsideBorder) {
 			if ((x - minX) <= Rules.MAX_VELOCITY) {
 				hitWall = true;
@@ -1216,17 +1220,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				}
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
 	}
 
