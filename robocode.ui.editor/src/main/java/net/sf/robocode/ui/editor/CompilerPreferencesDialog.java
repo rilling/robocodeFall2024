@@ -152,20 +152,23 @@ public class CompilerPreferencesDialog extends JDialog {
 			Logger.logError("Cannot save null compiler properties");
 			return;
 		}
-		FileOutputStream out = null;
 
-		try {
-			out = new FileOutputStream(FileUtil.getCompilerConfigFile());
+        try (FileOutputStream out = new FileOutputStream(FileUtil.getCompilerConfigFile())) {
 
 			compilerProperties.store(out, "Robocode Compiler Properties");
 		} catch (IOException e) {
 			Logger.logError(e);
-		} finally {
+		} 
+		/*
+		finally {
 			if (out != null) {
 				try {
 					out.close();
-				} catch (IOException ignored) {}
+				} catch (IOException ignored) {
+					Logger.logError(ignored);
+				}
 			}
 		}
+		*/
 	}
 }
