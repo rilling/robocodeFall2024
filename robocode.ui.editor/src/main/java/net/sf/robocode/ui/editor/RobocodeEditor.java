@@ -149,6 +149,28 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		return true;
 	}
 
+	private static String readTemplateFile(String templateName) {
+		String template = "";
+		File file = new File(FileUtil.getCwd(), templateName);
+
+		if (!file.exists() || !file.isFile()) {
+			return "File does not exist: " + FileUtil.getCwd() + File.separator + templateName;
+		}
+
+		try (FileInputStream fis = new FileInputStream(file);
+			 DataInputStream dis = new DataInputStream(fis)) {
+
+			byte[] buff = new byte[(int) file.length()];
+			dis.readFully(buff);
+			template = new String(buff);
+
+		} catch (IOException e) {
+			template = "Unable to read template file: " + FileUtil.getCwd() + File.separator + templateName;
+		}
+
+		return template;
+	}
+
 	public void createNewJavaFile() {
 		String packageName = null;
 
@@ -163,27 +185,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 		String templateName = "templates" + File.separatorChar + "newjavafile.tpt";
 
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
+		String template = readTemplateFile(templateName);
 
 		String name = "MyClass";
 
@@ -368,25 +370,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 		String templateName = "templates" + File.separatorChar + "new" + robotType.toLowerCase() + ".tpt";
 
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
+		String template = readTemplateFile(templateName);
 
 		int index = template.indexOf("$");
 
