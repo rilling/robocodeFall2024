@@ -149,58 +149,33 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		return true;
 	}
 
+	private String populateTemplate(String templatePath, String className, String packageName) {
+		String template = "";
+		File templateFile = new File(FileUtil.getCwd(), templatePath);
+
+		try (FileInputStream fis = new FileInputStream(templateFile);
+			 DataInputStream dis = new DataInputStream(fis)) {
+			byte[] buffer = new byte[(int) templateFile.length()];
+			dis.readFully(buffer);
+			template = new String(buffer, StandardCharsets.UTF_8);
+
+			template = template.replace("$CLASSNAME", className);
+			template = template.replace("$PACKAGE", packageName);
+
+		} catch (IOException e) {
+			template = "Unable to read template file: " + templateFile.getPath();
+		}
+
+		return template;
+	}
+
 	public void createNewJavaFile() {
-		String packageName = null;
-
-		if (getActiveWindow() != null) {
-			packageName = getActiveWindow().getPackage();
-		}
-		if (packageName == null) {
-			packageName = "mypackage";
-		}
-
+		String packageName = getActiveWindow() != null ? getActiveWindow().getPackage() : "mypackage";
 		EditWindow editWindow = new EditWindow(repositoryManager, this, robotsDirectory);
 
-		String templateName = "templates" + File.separatorChar + "newjavafile.tpt";
-
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
-
-		String name = "MyClass";
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		// Use populateTemplate to load and process the template
+		String templatePath = "templates" + File.separatorChar + "newjavafile.tpt";
+		String template = populateTemplate(templatePath, "MyClass", packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 
@@ -386,40 +361,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 		String templateName = "templates" + File.separatorChar + "new" + robotType.toLowerCase() + ".tpt";
 
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		String template = populateTemplate(templateName, name, packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 		editorPane.setText(template);
