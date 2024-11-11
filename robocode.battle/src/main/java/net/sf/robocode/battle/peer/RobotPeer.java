@@ -1270,33 +1270,32 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		}
 	}
 
+	// Helper method to adjust radar based on gun turn with a specified turn rate
+	private void adjustRadarForGunTurn(double turnRate) {
+		radarHeading += turnRate;
+
+		if (currentCommands.isAdjustRadarForGunTurn()) {
+			currentCommands.setRadarTurnRemaining(
+					currentCommands.getRadarTurnRemaining() - turnRate);
+		}
+	}
+
 	private void updateGunHeading() {
 		if (currentCommands.getGunTurnRemaining() > 0) {
 			if (currentCommands.getGunTurnRemaining() < Rules.GUN_TURN_RATE_RADIANS) {
 				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
+				adjustRadarForGunTurn(currentCommands.getGunTurnRemaining());
 				currentCommands.setGunTurnRemaining(0);
 			} else {
 				gunHeading += Rules.GUN_TURN_RATE_RADIANS;
 				radarHeading += Rules.GUN_TURN_RATE_RADIANS;
 				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				}
+				adjustRadarForGunTurn(Rules.GUN_TURN_RATE_RADIANS);
 			}
 		} else if (currentCommands.getGunTurnRemaining() < 0) {
 			if (currentCommands.getGunTurnRemaining() > -Rules.GUN_TURN_RATE_RADIANS) {
 				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
+				adjustRadarForGunTurn(currentCommands.getGunTurnRemaining());
 				currentCommands.setGunTurnRemaining(0);
 			} else {
 				gunHeading -= Rules.GUN_TURN_RATE_RADIANS;
