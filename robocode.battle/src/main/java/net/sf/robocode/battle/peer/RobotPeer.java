@@ -1255,46 +1255,36 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	}
 
 	private void updateGunHeading() {
-		if (currentCommands.getGunTurnRemaining() > 0) {
-			if (currentCommands.getGunTurnRemaining() < Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading += Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading += Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				}
-			}
-		} else if (currentCommands.getGunTurnRemaining() < 0) {
-			if (currentCommands.getGunTurnRemaining() > -Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				}
-			}
-		}
-		gunHeading = normalAbsoluteAngle(gunHeading);
-	}
+    double gunTurnRemaining = currentCommands.getGunTurnRemaining();
+    
+    if (gunTurnRemaining > 0) {
+        // Handle positive gun turn remaining
+        if (gunTurnRemaining < Rules.GUN_TURN_RATE_RADIANS) {
+            updateHeadingAndTurn(gunTurnRemaining);
+        } else {
+            updateHeadingAndTurn(Rules.GUN_TURN_RATE_RADIANS);
+        }
+    } else if (gunTurnRemaining < 0) {
+        // Handle negative gun turn remaining
+        if (gunTurnRemaining > -Rules.GUN_TURN_RATE_RADIANS) {
+            updateHeadingAndTurn(gunTurnRemaining);
+        } else {
+            updateHeadingAndTurn(-Rules.GUN_TURN_RATE_RADIANS);
+        }
+    }
 
+    gunHeading = normalAbsoluteAngle(gunHeading);
+}
+private void updateHeadingAndTurn(double turnAmount) {
+    gunHeading += turnAmount;
+    radarHeading += turnAmount;
+
+    if (currentCommands.isAdjustRadarForGunTurn()) {
+        currentCommands.setRadarTurnRemaining(
+                currentCommands.getRadarTurnRemaining() - turnAmount);
+    }
+    currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnAmount);
+}
 	private void updateHeading() {
 		boolean normalizeHeading = true;
 
