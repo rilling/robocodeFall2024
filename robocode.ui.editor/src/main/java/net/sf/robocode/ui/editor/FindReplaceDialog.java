@@ -208,10 +208,7 @@ public class FindReplaceDialog extends JDialog implements ActionListener {
 
 	public JButton getCloseButton() {
 		if (closeButton == null) {
-			closeButton = new JButton();
-			closeButton.setText("Close");
-			closeButton.setMnemonic('C');
-			closeButton.addActionListener(this);
+			closeButton = WindowMenuItem.createCloseButton(closeButton, 'C', this);
 		}
 		return closeButton;
 	}
