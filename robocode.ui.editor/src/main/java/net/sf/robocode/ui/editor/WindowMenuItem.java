@@ -86,6 +86,18 @@ public class WindowMenuItem extends JCheckBoxMenuItem implements ActionListener 
 		} catch (Throwable ignored) {}
 	}
 
+
+	/**
+	 * Gets a close button
+	 */
+	public static JButton createCloseButton(JButton closeButton, char mnemnonic, ActionListener actionListener) {
+		closeButton = new JButton();
+		closeButton.setText("Close");
+		closeButton.setMnemonic(mnemnonic);
+		closeButton.addActionListener(actionListener);
+		return closeButton;
+	}
+
 	/**
 	 * Returns the label that should be used. If the menu item is supposed to be
 	 * hidden, this may not be a real valid label.

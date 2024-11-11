@@ -81,11 +81,8 @@ public class MoreWindowsDialog extends JDialog implements ActionListener, MouseL
 
 	public JButton getCloseButton() {
 		if (closeButton == null) {
-			closeButton = new JButton();
-			closeButton.setText("Close");
-			closeButton.setMnemonic('l');
+			closeButton = WindowMenuItem.createCloseButton(closeButton, 'l', this);
 			closeButton.setDisplayedMnemonicIndex(1);
-			closeButton.addActionListener(this);
 		}
 		return closeButton;
 	}
