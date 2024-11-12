@@ -91,4 +91,16 @@ public class TeamPeer extends ArrayList<RobotPeer> implements ContestantPeer {
 	public String toString() {
 		return " [" + size() + "] " + getName();
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!super.equals(obj)) {
+			return false;
+		}
+		TeamPeer other = (TeamPeer) obj;
+		if (teamIndex == other.teamIndex && name.equals(other.name) && memberNames.equals(other.memberNames) && teamStatistics.equals(other.teamStatistics)){
+			return true;
+		}
+		return false;
+	}
 }

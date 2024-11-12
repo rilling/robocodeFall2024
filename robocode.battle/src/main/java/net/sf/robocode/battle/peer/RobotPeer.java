@@ -85,12 +85,12 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	private final TeamPeer teamPeer;
 
 	private IHostingRobotProxy robotProxy;
-	private AtomicReference<RobotStatus> status = new AtomicReference<RobotStatus>();
-	private AtomicReference<ExecCommands> commands = new AtomicReference<ExecCommands>();
-	private AtomicReference<EventQueue> events = new AtomicReference<EventQueue>(new EventQueue());
-	private AtomicReference<List<TeamMessage>> teamMessages = new AtomicReference<List<TeamMessage>>(
+	private AtomicReference<RobotStatus> status = new AtomicReference<>();
+	private AtomicReference<ExecCommands> commands = new AtomicReference<>();
+	private AtomicReference<EventQueue> events = new AtomicReference<>(new EventQueue());
+	private AtomicReference<List<TeamMessage>> teamMessages = new AtomicReference<>(
 			new ArrayList<TeamMessage>());
-	private AtomicReference<List<BulletStatus>> bulletUpdates = new AtomicReference<List<BulletStatus>>(
+	private AtomicReference<List<BulletStatus>> bulletUpdates = new AtomicReference<>(
 			new ArrayList<BulletStatus>());
 
 	// thread is running
@@ -682,8 +682,8 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 			double maxWidth = battleRules.getBattlefieldWidth() - RobotPeer.WIDTH;
 			double maxHeight = battleRules.getBattlefieldHeight() - RobotPeer.HEIGHT;
 
-			double halfRobotWidth = RobotPeer.WIDTH / 2;
-			double halfRobotHeight = RobotPeer.HEIGHT / 2;
+			double halfRobotWidth = (double) RobotPeer.WIDTH / 2;
+			double halfRobotHeight = (double) RobotPeer.HEIGHT / 2;
 
 			int sentryBorderSize = battle.getBattleRules().getSentryBorderSize();
 			int sentryBorderMoveWidth = sentryBorderSize - RobotPeer.WIDTH;
@@ -760,7 +760,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		lastExecutionTime = -1;
 
-		status = new AtomicReference<RobotStatus>();
+		status = new AtomicReference<>();
 
 		readoutEvents();
 		readoutTeamMessages();
@@ -776,7 +776,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		ExecCommands newExecCommands = new ExecCommands();
 
 		newExecCommands.copyColors(commands.get());
-		commands = new AtomicReference<ExecCommands>(newExecCommands);
+		commands = new AtomicReference<>(newExecCommands);
 	}
 
 	private boolean validSpot(List<RobotPeer> robots) {
@@ -806,13 +806,8 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		int others = battle.countActiveParticipants() - (isAlive() ? 1 : 0);
 		int numSentries = battle.countActiveSentries();
 
-		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
-				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
-				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
-				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
-
-		status.set(stat);
-		robotProxy.startRound(currentCommands, stat);
+		setRobotStatus(others, numSentries, currentCommands);
+		robotProxy.startRound(currentCommands, status.get());
 
 		synchronized (isSleeping) {
 			try {
@@ -1138,18 +1133,22 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				y = maxY;
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
+	}
+
+	private void updateStatusForHitWallEvent() {
+		// Update energy, but do not reset inactiveTurnCount
+		if (statics.isAdvancedRobot()) {
+			setEnergy(energy - Rules.getWallHitDamage(velocity), false);
+		}
+
+		updateBoundingBox();
+
+		currentCommands.setDistanceRemaining(0);
+		velocity = 0;
+
+		setState(RobotState.HIT_WALL);
 	}
 
 	private void checkSentryOutsideBorder() {
@@ -1165,7 +1164,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		double angle = 0;
 
 		boolean isOutsideBorder = x > minX && x < maxX && y > minY && y < maxY;
-		
+
 		if (isOutsideBorder) {
 			if ((x - minX) <= Rules.MAX_VELOCITY) {
 				hitWall = true;
@@ -1200,14 +1199,9 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				if (adjustX == 0) {
 					adjustX = adjustY * tanHeading;
 				} // if it hits a side wall
-				else if (adjustY == 0) {
+				else {
 					adjustY = adjustX / tanHeading;
 				} // if the robot hits 2 walls at the same time (rare, but just in case)
-				else if (abs(adjustX / tanHeading) > abs(adjustY)) {
-					adjustY = adjustX / tanHeading;
-				} else if (abs(adjustY * tanHeading) > abs(adjustX)) {
-					adjustX = adjustY * tanHeading;
-				}
 			}
 
 			x += adjustX;
@@ -1226,17 +1220,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				}
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
 	}
 
@@ -1271,46 +1255,36 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	}
 
 	private void updateGunHeading() {
-		if (currentCommands.getGunTurnRemaining() > 0) {
-			if (currentCommands.getGunTurnRemaining() < Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading += Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading += Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				}
-			}
-		} else if (currentCommands.getGunTurnRemaining() < 0) {
-			if (currentCommands.getGunTurnRemaining() > -Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				radarHeading += currentCommands.getGunTurnRemaining();
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getGunTurnRemaining());
-				}
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				}
-			}
-		}
-		gunHeading = normalAbsoluteAngle(gunHeading);
-	}
+    double gunTurnRemaining = currentCommands.getGunTurnRemaining();
+    
+    if (gunTurnRemaining > 0) {
+        // Handle positive gun turn remaining
+        if (gunTurnRemaining < Rules.GUN_TURN_RATE_RADIANS) {
+            updateHeadingAndTurn(gunTurnRemaining);
+        } else {
+            updateHeadingAndTurn(Rules.GUN_TURN_RATE_RADIANS);
+        }
+    } else if (gunTurnRemaining < 0) {
+        // Handle negative gun turn remaining
+        if (gunTurnRemaining > -Rules.GUN_TURN_RATE_RADIANS) {
+            updateHeadingAndTurn(gunTurnRemaining);
+        } else {
+            updateHeadingAndTurn(-Rules.GUN_TURN_RATE_RADIANS);
+        }
+    }
 
+    gunHeading = normalAbsoluteAngle(gunHeading);
+}
+private void updateHeadingAndTurn(double turnAmount) {
+    gunHeading += turnAmount;
+    radarHeading += turnAmount;
+
+    if (currentCommands.isAdjustRadarForGunTurn()) {
+        currentCommands.setRadarTurnRemaining(
+                currentCommands.getRadarTurnRemaining() - turnAmount);
+    }
+    currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnAmount);
+}
 	private void updateHeading() {
 		boolean normalizeHeading = true;
 
@@ -1319,55 +1293,19 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		if (currentCommands.getBodyTurnRemaining() > 0) {
 			if (currentCommands.getBodyTurnRemaining() < turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading += turnRate;
-				gunHeading += turnRate;
-				radarHeading += turnRate;
+				adjustHeadings(turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() - turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRate);
-				}
 			}
 		} else if (currentCommands.getBodyTurnRemaining() < 0) {
 			if (currentCommands.getBodyTurnRemaining() > -turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading -= turnRate;
-				gunHeading -= turnRate;
-				radarHeading -= turnRate;
+				adjustHeadings(-turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() + turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() + turnRate);
-				}
 			}
 		} else {
 			normalizeHeading = false;
@@ -1735,12 +1673,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		int others = battle.countActiveParticipants() - (isDead() || isSentryRobot() ? 0 : 1);
 		int numSentries = battle.countActiveSentries();
 
-		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
-				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
-				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
-				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
-
-		status.set(stat);
+		setRobotStatus(others, numSentries, currentCommands);
 	}
 
 	void addBulletStatus(BulletStatus bulletStatus) {
@@ -1766,11 +1699,34 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		return 0;
 	}
 
+	private void adjustHeadings(double turnRemaining) {
+
+		bodyHeading += turnRemaining;
+		gunHeading += turnRemaining;
+		radarHeading += turnRemaining;
+
+		if (currentCommands.isAdjustGunForBodyTurn()) {
+			currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRemaining);
+		}
+		if (currentCommands.isAdjustRadarForBodyTurn()) {
+			currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRemaining);
+		}
+	}
+
 	@Override
 	public String toString() {
 		return statics.getShortName() + "(" + (int) energy + ") X" + (int) x + " Y" + (int) y
 				+ " ~" + Utils.angleToApproximateDirection(bodyHeading)
 				+ " " + state.toString()
 				+ (isSleeping() ? " sleeping " : "") + (isRunning() ? " running" : "") + (isHalt() ? " halted" : "");
+	}
+
+	private void setRobotStatus (int others, int numSentries, ExecCommands currentCommands) {
+		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
+				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
+				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
+				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
+
+		status.set(stat);
 	}
 }

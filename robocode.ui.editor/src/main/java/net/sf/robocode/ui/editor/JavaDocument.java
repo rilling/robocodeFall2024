@@ -41,7 +41,7 @@ import net.sf.robocode.util.StringUtil;
 
 /**
  * Represents a styled Java document used for syntax high-lightning.
- * 
+ *
  * @author Flemming N. Larsen (original)
  */
 @SuppressWarnings("serial")
@@ -59,7 +59,7 @@ public class JavaDocument extends StyledDocument {
 	private boolean isAutoIndentEnabled = true;
 
 	/** Flag defining if spaces must be used for indentation; otherwise tabulation characters are being used */
-	private final boolean useSpacesForIndentation = false;
+	private static final boolean useSpacesForIndentation = false;
 
 	/** Tab size (column width) */
 	private int tabSize = 4; // Default is every 4th column
@@ -68,7 +68,7 @@ public class JavaDocument extends StyledDocument {
 	private static final String QUOTE_DELIMITERS = "\"'";
 
 	/** Java keywords */
-	private static final Set<String> KEYWORDS = new HashSet<String>(
+	private static final Set<String> KEYWORDS = new HashSet<>(
 			Arrays.asList(
 					"abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
 					"default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
@@ -113,7 +113,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Constructor that creates a Java document.
-	 * 
+	 *
 	 * @param textPane
 	 *            is the text pane that this Java documents must apply to.
 	 */
@@ -201,7 +201,7 @@ public class JavaDocument extends StyledDocument {
 				updateSyntaxHighlighting(true);
 			}
 		});
-		
+
 		// Setup change listener and focus listener on the viewport of the text pane
 
 		JViewport viewport = textPane.getViewport();
@@ -256,7 +256,7 @@ public class JavaDocument extends StyledDocument {
 	public void setReplacingText(boolean isReplacingText) {
 		this.isReplacingText = isReplacingText;
 	}
-	
+
 	@Override
 	public void insertString(int offset, String str, AttributeSet a) throws BadLocationException {
 		// Process auto indentation on inserted string
@@ -266,7 +266,7 @@ public class JavaDocument extends StyledDocument {
 		str = replaceTabulatorCharacters(getEndOffset(getElementFromOffset(offset)), indent.text);
 
 		// Set the new caret position on the text pane if the caret position has been set
-		autoIndentationCaretPos = indent.caretPos;				
+		autoIndentationCaretPos = indent.caretPos;
 
 		// Insert the modified string using the original method for inserting string into this document
 		super.insertString(offset, str, a);
@@ -274,7 +274,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Sets the tabulation column size.
-	 * 
+	 *
 	 * @param tabSize
 	 *            is the new tabulation column size, which must be &gt;= 1.
 	 */
@@ -284,7 +284,7 @@ public class JavaDocument extends StyledDocument {
 
 	private void setTextColorsAndStyles(IEditorThemeProperties themeProps) {
 		if (themeProps == null) {
-			themeProps = EditorThemePropertiesManager.getCurrentEditorThemeProperties();			
+			themeProps = EditorThemePropertiesManager.getCurrentEditorThemeProperties();
 		}
 		setNormalTextColor(themeProps.getNormalTextColor());
 		setNormalTextStyle(themeProps.getNormalTextStyle());
@@ -308,7 +308,7 @@ public class JavaDocument extends StyledDocument {
 		StyleConstants.setBold(normalAttrSet, newStyle.isBold());
 		StyleConstants.setItalic(normalAttrSet, newStyle.isItalic());
 	}
-	
+
 	private void setQuotedTextColor(Color newColor) {
 		StyleConstants.setForeground(quoteAttrSet, newColor);
 	}
@@ -353,10 +353,10 @@ public class JavaDocument extends StyledDocument {
 		StyleConstants.setBold(commentAttrSet, newStyle.isBold());
 		StyleConstants.setItalic(commentAttrSet, newStyle.isItalic());
 	}
-	
+
 	/**
 	 * Applies indentation for an inserted string at a given offset if auto indentation is enabled.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset of the inserted string.
 	 * @param str
@@ -413,7 +413,7 @@ public class JavaDocument extends StyledDocument {
 	/**
 	 * Returns a string where tabulator characters in the given string is replaced with spaces, but only if these must
 	 * be replaced with spaces by configuration.
-	 * 
+	 *
 	 * @param startIndex
 	 *            is the start index of the string in a line used for determine the current tabulator column.
 	 * @param str
@@ -460,7 +460,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Returns a string containing a specific number of spaces only.
-	 * 
+	 *
 	 * @param count
 	 *            is the number of spaces the the string should contain.
 	 * @return a string containing only the given number of space characters.
@@ -488,7 +488,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Composes a body start indentation block starting with a '{' and ending with a '}' and update the caret position.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset of the inserted string.
 	 * @param line
@@ -533,7 +533,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Composes a multiline comment start indentation block.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset of the inserted string.
 	 * @param line
@@ -573,7 +573,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Composes a continued multiline comment indentation block.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset of the inserted string.
 	 * @param line
@@ -611,7 +611,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Composes a multiline end start indentation block.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset of the inserted string.
 	 * @param line
@@ -654,7 +654,7 @@ public class JavaDocument extends StyledDocument {
 	 * Returns line from the specified offset where trailing white spaces are removed. Note: The white spaces in the
 	 * beginning of the line is not removed as these serve to determine start indentation for inserted lines following
 	 * this line.
-	 * 
+	 *
 	 * @param offset
 	 *            is the offset to retrieve the line from.
 	 * @return the line at the given offset where trailing white spaces have been trimmed.
@@ -682,7 +682,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Calculates and returns the indentation length (number of space characters) of the line at the given offset.
-	 * 
+	 *
 	 * @param offset
 	 *            is the document offset of the line.
 	 * @return the calculated indentation length of the line at the given offset.
@@ -717,7 +717,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Returns a start indentation string of the given length.
-	 * 
+	 *
 	 * @param length
 	 *            is the length of the indentation measured in number of spaces.
 	 * @return a string to apply to the start of a line in order to indent the line.
@@ -771,7 +771,7 @@ public class JavaDocument extends StyledDocument {
 	 * Perform syntax highlighting on the document. This implementation only performs syntax highlighting on the current
 	 * visible text in the view port of the text pane, and detects if the text has been changed before performing the
 	 * syntax highlighting.
-	 * 
+	 *
 	 * @throws BadLocationException
 	 */
 	private void performSyntaxHighlighting(boolean force) throws BadLocationException {
@@ -781,7 +781,7 @@ public class JavaDocument extends StyledDocument {
 		}
 
 		// Get the start and end offset of the visible text
-		
+
 		JViewport viewport = textPane.getViewport();
 		Point startPoint = viewport.getViewPosition();
 		Dimension size = viewport.getExtentSize();
@@ -812,7 +812,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Process changed line by applying syntax highlighting on the entire line at the given index.
-	 * 
+	 *
 	 * @param lineIndex
 	 *            is the index of the line.
 	 * @throws BadLocationException
@@ -826,7 +826,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Process the syntax tokens contained in a line.
-	 * 
+	 *
 	 * @param startOffset
 	 *            is the document start offset of the line to process.
 	 * @param endOffset
@@ -848,7 +848,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Process the syntax token contained in a text fragment.
-	 * 
+	 *
 	 * @param textFragment
 	 *            is the text fragment.
 	 * @param startOffset
@@ -922,7 +922,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Process a quote token.
-	 * 
+	 *
 	 * @param textFragment
 	 *            is the text fragment.
 	 * @param startOffset
@@ -960,7 +960,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Process a multiline comment token.
-	 * 
+	 *
 	 * @param textFragment
 	 *            is the text fragment.
 	 * @param startOffset
@@ -979,7 +979,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if the current text offset is within a multiline comment.
-	 * 
+	 *
 	 * @param offset
 	 *            is the text offset.
 	 * @return true if the given offset is within a multiline comment; false otherwise.
@@ -991,7 +991,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if the current text offset is within a multiline comment.
-	 * 
+	 *
 	 * @oaram lineIndex is the element index of a line.
 	 * @param offset
 	 *            is the text offset.
@@ -1028,7 +1028,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if a character is a quote delimiter character.
-	 * 
+	 *
 	 * @param ch
 	 *            is the character.
 	 * @return true if the given character is a quote delimiter character; false otherwise.
@@ -1039,7 +1039,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if a token is a keyword.
-	 * 
+	 *
 	 * @param token
 	 *            is the token.
 	 * @return true if the given token is a keyword; false otherwise.
@@ -1050,7 +1050,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if a token is a predefined literal.
-	 * 
+	 *
 	 * @param token
 	 *            is the token.
 	 * @return true if the given token is a predefined literal; false otherwise.
@@ -1061,7 +1061,7 @@ public class JavaDocument extends StyledDocument {
 
 	/**
 	 * Checks if a token is an annotation.
-	 * 
+	 *
 	 * @param token
 	 *            is the token.
 	 * @return true if the given token is an annotation; false otherwise.
@@ -1089,10 +1089,10 @@ public class JavaDocument extends StyledDocument {
 
 		// Caret position updater
 		final CaretPositionUpdater caretPositionUpdater = new CaretPositionUpdater();
-		
+
 		public void insertUpdate(final DocumentEvent e) {
 			int newCaretPosition;
-			
+
 			// Check if the caret position has been changed by auto indentation
 			if (autoIndentationCaretPos >= 0) {
 				// Set the new caret position to the one set for auto indentation
@@ -1101,7 +1101,7 @@ public class JavaDocument extends StyledDocument {
 				autoIndentationCaretPos = -1;
 			} else {
 				// Set the new caret position to the end of the inserted text
-				newCaretPosition = e.getOffset() + e.getLength();				
+				newCaretPosition = e.getOffset() + e.getLength();
 			}
 			// Update the caret position to the new position
 			caretPositionUpdater.updateCaretPosition(newCaretPosition);
@@ -1117,7 +1117,7 @@ public class JavaDocument extends StyledDocument {
 			// Apply syntax highlighting from the current offset
 			updateSyntaxHighlighting(false);
 		}
-		
+
 		public void changedUpdate(DocumentEvent e) {}
 
 		private final class CaretPositionUpdater {
