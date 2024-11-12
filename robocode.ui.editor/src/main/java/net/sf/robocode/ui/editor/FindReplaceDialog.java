@@ -317,16 +317,20 @@ public class FindReplaceDialog extends JDialog implements ActionListener {
 		return Pattern.compile(pattern, flags);
 	}
 
-	public void findNext() {
+	private JEditorPane getEditorPane(){
 		EditWindow currentWindow = editor.getActiveWindow();
 
 		if (currentWindow == null || getFindTextField().getText().length() == 0) {
 			// launch error dialog?
-			return;
+			return null;
 		}
-		Pattern p = getCurrentPattern();
-		JEditorPane editorPane = currentWindow.getEditorPane();
+		return currentWindow.getEditorPane();
+	}
 
+	public void findNext() {
+		JEditorPane editorPane = getEditorPane();
+		if(editorPane==null) return;
+		Pattern p = getCurrentPattern();
 		// for some reason, getText() trims off \r but the indexes in
 		// the editor pane don't.
 		String text = editorPane.getText().replaceAll("\\r", "");
@@ -341,13 +345,8 @@ public class FindReplaceDialog extends JDialog implements ActionListener {
 	}
 
 	public void doReplacement() {
-		EditWindow currentWindow = editor.getActiveWindow();
-
-		if (currentWindow == null || getFindTextField().getText().length() == 0) {
-			// launch error dialog?
-			return;
-		}
-		JEditorPane editorPane = currentWindow.getEditorPane();
+		JEditorPane editorPane = getEditorPane();
+		if(editorPane==null) return;
 		String text = editorPane.getSelectedText();
 
 		if (text == null) {
@@ -367,13 +366,8 @@ public class FindReplaceDialog extends JDialog implements ActionListener {
 	}
 
 	public void doReplaceAll() {
-		EditWindow currentWindow = editor.getActiveWindow();
-
-		if (currentWindow == null || getFindTextField().getText().length() == 0) {
-			// launch error dialog?
-			return;
-		}
-		JEditorPane editorPane = currentWindow.getEditorPane();
+		JEditorPane editorPane = getEditorPane();
+		if(editorPane==null) return;
 		String text = editorPane.getText();
 
 		String replacement = getReplaceTextField().getText();

@@ -171,16 +171,29 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		return template;
 	}
 
+			
+	private String populateTemplate(String templatePath, String className, String packageName) {
+		String template = "";
+		File templateFile = new File(FileUtil.getCwd(), templatePath);
+
+		try (FileInputStream fis = new FileInputStream(templateFile);
+			 DataInputStream dis = new DataInputStream(fis)) {
+			byte[] buffer = new byte[(int) templateFile.length()];
+			dis.readFully(buffer);
+			template = new String(buffer, StandardCharsets.UTF_8);
+
+			template = template.replace("$CLASSNAME", className);
+			template = template.replace("$PACKAGE", packageName);
+
+		} catch (IOException e) {
+			template = "Unable to read template file: " + templateFile.getPath();
+		}
+
+		return template;
+	}
+
 	public void createNewJavaFile() {
-		String packageName = null;
-
-		if (getActiveWindow() != null) {
-			packageName = getActiveWindow().getPackage();
-		}
-		if (packageName == null) {
-			packageName = "mypackage";
-		}
-
+		String packageName = getActiveWindow() != null ? getActiveWindow().getPackage() : "mypackage";
 		EditWindow editWindow = new EditWindow(repositoryManager, this, robotsDirectory);
 
 		String templateName = "templates" + File.separatorChar + "newjavafile.tpt";
