@@ -7,7 +7,6 @@
  */
 package net.sf.robocode.repository.packager;
 
-
 import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.io.URLJarCollector;
@@ -22,7 +21,6 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarEntry;
 import java.net.URLConnection;
 import java.net.URL;
-
 
 /**
  * @author Pavel Savara (original)
@@ -45,11 +43,14 @@ public class JarExtractor {
 
 			while (entry != null) {
 				if (entry.isDirectory()) {
-					File dir = new File(dest, entry.getName());
+					File dir = new File(dest, entry.getName()); // Define 'dir' here
 
-					if (!dir.exists() && !dir.mkdirs()) {
-						Logger.logError("Cannot create dir: " + dir);
+					// Ensure parent directory exists
+					File parentDirectory = new File(dir.getParent()); // Define 'parentDirectory' here
+					if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
+						Logger.logError("Cannot create parent dir: " + parentDirectory);
 					}
+
 				} else {
 					extractFile(dest, jarIS, entry);
 				}
@@ -66,11 +67,13 @@ public class JarExtractor {
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
 		File out = new File(dest, entry.getName());
-		File parentDirectory = new File(out.getParent());
+		File parentDirectory = new File(out.getParent()); // Define 'parentDirectory' here
 
+		// Ensure the directory exists
 		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-			Logger.logError("Cannot create dir: " + parentDirectory);
+			Logger.logError("Cannot create parent dir: " + parentDirectory);
 		}
+
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		byte[] buf = new byte[2048];
