@@ -123,6 +123,14 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 		}
 	}
 
+	private double getHeading(double heading) {
+		if (peer != null) {
+			return heading * 180.0 / Math.PI;
+		}
+		uninitializedException();
+		return 0;
+	}
+
 	/**
 	 * Immediately moves your robot backward by distance measured in pixels.
 	 * <p>
@@ -519,11 +527,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getRadarHeading()
 	 */
 	public double getGunHeading() {
-		if (peer != null) {
-			return peer.getGunHeading() * 180.0 / Math.PI;
-		}
-		uninitializedException();
-		return 0; // never called
+		return getHeading(peer.getGunHeading());
 	}
 
 	/**
@@ -624,11 +628,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getGunHeading()
 	 */
 	public double getRadarHeading() {
-		if (peer != null) {
-			return peer.getRadarHeading() * 180.0 / Math.PI;
-		}
-		uninitializedException();
-		return 0; // never called
+		return getHeading(peer.getRadarHeading());
 	}
 
 	/**
@@ -1424,11 +1424,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @return the robot's current energy.
 	 */
 	public double getEnergy() {
-		if (peer != null) {
-			return peer.getEnergy();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getEnergy());
 	}
 
 	/**
