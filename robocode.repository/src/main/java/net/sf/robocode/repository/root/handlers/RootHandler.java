@@ -36,17 +36,23 @@ public abstract class RootHandler {
 		}
 	}
 
-	public static void openHandlers() {
+	public static void processHandlers(String action) {
 		List<RootHandler> rootHandlers = Container.getComponents(RootHandler.class);
 		for (RootHandler handler : rootHandlers) {
-			handler.open();
+			if ("open".equals(action)) {
+				handler.open();
+			} else if ("close".equals(action)) {
+				handler.close();
+			}
 		}
 	}
 
-	public static void closeHandlers() {
-		List<RootHandler> rootHandlers = Container.getComponents(RootHandler.class);
-		for (RootHandler handler : rootHandlers) {
-			handler.close();
-		}
+	public static void openHandlers() {
+		processHandlers("open");
 	}
+
+	public static void closeHandlers() {
+		processHandlers("close");
+	}
+
 }
