@@ -591,6 +591,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 		uninitializedException();
 		return 0; // never called
 	}
+	
 
 	/**
 	 * Returns how many opponents that are left in the current round.
