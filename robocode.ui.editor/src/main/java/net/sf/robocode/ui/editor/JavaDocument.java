@@ -549,22 +549,8 @@ public class JavaDocument extends StyledDocument {
 
 		// Check if the given line contains a multiline start string, i.e. '/*'
 		if (line.trim().startsWith("/*")) {
-			// Calculated current start indentation length from the given offset
-			int startIndentLen = getIndentationLengthFromOffset(offset);
-			// Calculate the start indentation string
-			String startIndent = getStartIndentation(startIndentLen);
-			// Prepare buffer for containing the indentation block
-			StringBuilder sb = new StringBuilder("\n");
-
-			// Append new indented multiline comment line to the buffer, that is indented based on the start indentation
-			sb.append(startIndent).append(" * \n");
-			// Update the caret position to be placed in the end of the new indented line
-			indentation.caretPos = offset + sb.toString().length() - 1;
-			// Append the multiline comment end character on a new line
-			sb.append(startIndent).append(" */");
-			// Set the indentation block text to the string containing from the buffer
-			indentation.text = sb.toString();
-			// Indentation block was created
+			indentation.text = createIndentedCommentLine(offset, " * ");
+			indentation.caretPos = offset + indentation.text.length() - 1;
 			return true;
 		}
 		// Indentation block was not created
@@ -589,20 +575,8 @@ public class JavaDocument extends StyledDocument {
 
 		// Check if the given line contains a '*' and is located inside of a multiline comment
 		if (line.trim().startsWith("*") && isInMultilineComment(offset)) {
-			// Calculated current start indentation length from the given offset
-			int startIndentLen = getIndentationLengthFromOffset(offset);
-			// Calculate the start indentation string
-			String startIndent = getStartIndentation(startIndentLen);
-			// Prepare buffer for containing the indentation block
-			StringBuilder sb = new StringBuilder("\n");
-
-			// Append new indented multiline comment line to the buffer, that is indented based on the start indentation
-			sb.append(startIndent).append("* ");
-			// Update the caret position to be placed in the end of the new indented line
-			indentation.caretPos = offset + sb.toString().length();
-			// Set the indentation block text to the string containing from the buffer
-			indentation.text = sb.toString();
-			// Indentation block was created
+			indentation.text = createIndentedCommentLine(offset, "* ");
+			indentation.caretPos = offset + indentation.text.length() - 1;
 			return true;
 		}
 		// Indentation block was not created
@@ -1079,7 +1053,19 @@ public class JavaDocument extends StyledDocument {
 		// Is the indentation text
 		String text;
 	}
+	private String createIndentedCommentLine(int offset, String commentPrefix) throws BadLocationException {
+		// Calculated current start indentation length from the given offset
+		int startIndentLen = getIndentationLengthFromOffset(offset);
+		// Calculate the start indentation string
+		String startIndent = getStartIndentation(startIndentLen);
+		// Prepare buffer for containing the indentation block
+		StringBuilder sb = new StringBuilder("\n");
 
+		// Append new indented comment line to the buffer, that is indented based on the start indentation
+		sb.append(startIndent).append(commentPrefix).append("\n");
+
+		return sb.toString();
+	}
 
 	/**
 	 * This document listener is used for updating the caret position and update syntax highlighting when the contents

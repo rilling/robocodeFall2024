@@ -192,6 +192,50 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 	public void createNewJuniorRobot() {
 		createNewRobot("JuniorRobot");
 	}
+	private boolean validatePackageName(String packageName, String message) {
+		if (packageName.length() == 0) {
+			return false;
+		}
+		if (packageName.length() > MAX_PACKAGE_NAME_LENGTH) {
+			return false;
+		}
+		char firstLetter = packageName.charAt(0);
+		if (firstLetter == '$' || firstLetter == '_') {
+			return false;
+		}
+		int firstLetterCodePoint = packageName.codePointAt(0);
+		if (!Character.isJavaIdentifierStart(firstLetterCodePoint)) {
+			return false;
+		}
+		for (int i = 1; i < packageName.length(); i++) {
+			char ch = packageName.charAt(i);
+			int codePoint = packageName.codePointAt(i);
+
+			if (!(Character.isJavaIdentifierPart(codePoint) || ch == '.') || ch == '$') {
+				return false;
+			}
+		}
+		if (packageName.charAt(packageName.length() - 1) == '.') {
+			return false;
+		}
+		boolean wrong_dot_combination = false;
+		int lastDotIndex = -1;
+
+		for (int i = 0; i < packageName.length(); i++) {
+			if (packageName.charAt(i) == '.') {
+				if (i - lastDotIndex == 1) {
+					wrong_dot_combination = true;
+					break;
+				}
+				lastDotIndex = i;
+			}
+		}
+		if (wrong_dot_combination) {return false;}
+		if (repositoryManager != null) {
+			return repositoryManager.verifyRobotName(packageName, message);
+		}
+		return true;
+	}
 
 	private void createNewRobot(final String robotType) {
 		final String ROBOT_NAME_DESCRIPTION = "Enter the name of your new robot.\nExample: MyFirst" + robotType
@@ -276,35 +320,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 				return; // cancelled
 			}
 			packageName = packageName.trim();
-			if (packageName.length() == 0) {
-				message = ROBOT_PACKAGE_NAME_DESCRIPTION;				
-				continue;
-			}
-			if (packageName.length() > MAX_PACKAGE_NAME_LENGTH) {
-				packageName = packageName.substring(0, MAX_PACKAGE_NAME_LENGTH);
-				message = "Please choose a shorter name (up to " + MAX_PACKAGE_NAME_LENGTH + " characters)";
-				continue;
-			}
-
-			done = true;
-
-			char firstLetter = packageName.charAt(0);
-
-			if (firstLetter == '$' || firstLetter == '_') {
-				packageName = packageName.substring(1);
-				done = false;
-			}
-			int firstLetterCodePoint = packageName.codePointAt(0); // used for supporting Unicode methods
-
-			if (!Character.isJavaIdentifierStart(firstLetterCodePoint)) {
-				done = false;
-			}
-			if (!done) {
-				message = "Please start the package name with a small letter.\n"
-						+ "The entire package name should be written in lower-case letters\n"
-						+ "(Java convention), although Robocode will accept big case letters as well.";
-				continue;
-			}
+			done = validatePackageName(packageName, name);
 
 			char ch = 0;
 
@@ -318,32 +334,9 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 				}
 			}
 			if (!done) {
-				message = "Your package name contains an invalid character: '" + ch
-						+ "'\nPlease use only small letters and digits.";
-				continue;
-			}
-
-			if (packageName.charAt(packageName.length() - 1) == '.') {
-				message = "The package name cannot end with a dot";
-				done = false;
-				continue;
-			}
-
-			boolean wrong_dot_combination = false;
-			int lastDotIndex = -1;
-
-			for (int i = 0; i < packageName.length(); i++) {
-				if (packageName.charAt(i) == '.') {
-					if (i - lastDotIndex == 1) {
-						wrong_dot_combination = true;
-						break;
-					}
-					lastDotIndex = i;
-				}
-			}
-			if (wrong_dot_combination) {
-				message = "The package name contain two dots next to each other";
-				done = false;
+				message = "The package name contains invalid characters or format.\n" +
+						"Please use only letters, digits, and single dots.\n" +
+						"The package name should start with a letter.";
 				continue;
 			}
 
