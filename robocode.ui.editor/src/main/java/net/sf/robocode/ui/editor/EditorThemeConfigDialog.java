@@ -319,54 +319,32 @@ public class EditorThemeConfigDialog extends JDialog {
 	private JPanel getFontNamePanel() {
 		JPanel panel = new JPanel();
 		JLabel label = new JLabel("Font Name");
-
-		panel.setLayout(new GridBagLayout());
-
 		GridBagConstraints gbc = new GridBagConstraints();
-
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		panel.add(label, gbc);
-
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL; 
-		gbc.weightx = 1.0;
+		populatePanelWithGridBagData(panel, label, gbc);
 		panel.add(getFontNameComboBox(), gbc);
-
 		return panel;
 	}
 
 	private JPanel getFontStylePanel() {
 		JPanel panel = new JPanel();
 		JLabel label = new JLabel("Style");
-
-		panel.setLayout(new GridBagLayout());
-
 		GridBagConstraints gbc = new GridBagConstraints();
-
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		panel.add(label, gbc);
-
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL; 
-		gbc.weightx = 1.0;
+		populatePanelWithGridBagData(panel, label, gbc);
 		panel.add(getFontStyleComboBox(), gbc);
-
 		return panel;
 	}
 
 	private JPanel getFontSizePanel() {
 		JPanel panel = new JPanel();
 		JLabel label = new JLabel("Size");
-
-		panel.setLayout(new GridBagLayout());
-
 		GridBagConstraints gbc = new GridBagConstraints();
+		populatePanelWithGridBagData(panel, label, gbc);
+		panel.add(getFontSizeComboBox(), gbc);
+		return panel;
+	}
+
+	private void populatePanelWithGridBagData(JPanel panel, JLabel label, GridBagConstraints gbc) {
+		panel.setLayout(new GridBagLayout());
 
 		gbc.gridx = 0;
 		gbc.gridy = 0;
@@ -375,11 +353,8 @@ public class EditorThemeConfigDialog extends JDialog {
 
 		gbc.gridx = 0;
 		gbc.gridy = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL; 
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weightx = 1.0;
-		panel.add(getFontSizeComboBox(), gbc);
-
-		return panel;
 	}
 
 	private JLabel getPreviewLabel() {
