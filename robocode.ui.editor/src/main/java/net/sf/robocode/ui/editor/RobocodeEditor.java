@@ -149,29 +149,6 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		return true;
 	}
 
-	private static String readTemplateFile(String templateName) {
-		String template = "";
-		File file = new File(FileUtil.getCwd(), templateName);
-
-		if (!file.exists() || !file.isFile()) {
-			return "File does not exist: " + FileUtil.getCwd() + File.separator + templateName;
-		}
-
-		try (FileInputStream fis = new FileInputStream(file);
-			 DataInputStream dis = new DataInputStream(fis)) {
-
-			byte[] buff = new byte[(int) file.length()];
-			dis.readFully(buff);
-			template = new String(buff);
-
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separator + templateName;
-		}
-
-		return template;
-	}
-
-			
 	private String populateTemplate(String templatePath, String className, String packageName) {
 		String template = "";
 		File templateFile = new File(FileUtil.getCwd(), templatePath);
@@ -196,26 +173,9 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		String packageName = getActiveWindow() != null ? getActiveWindow().getPackage() : "mypackage";
 		EditWindow editWindow = new EditWindow(repositoryManager, this, robotsDirectory);
 
-		String templateName = "templates" + File.separatorChar + "newjavafile.tpt";
-
-		String template = readTemplateFile(templateName);
-
-		String name = "MyClass";
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		// Use populateTemplate to load and process the template
+		String templatePath = "templates" + File.separatorChar + "newjavafile.tpt";
+		String template = populateTemplate(templatePath, "MyClass", packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 
@@ -362,6 +322,17 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 			packageName = packageName.trim();
 			done = validatePackageName(packageName, name);
 
+			char ch = 0;
+
+			for (int i = 1; i < packageName.length(); i++) {
+				ch = packageName.charAt(i);
+				int codePoint = packageName.codePointAt(i);
+
+				if (!(Character.isJavaIdentifierPart(codePoint) || ch == '.') || ch == '$') {
+					done = false;
+					break;
+				}
+			}
 			if (!done) {
 				message = "The package name contains invalid characters or format.\n" +
 						"Please use only letters, digits, and single dots.\n" +
@@ -383,22 +354,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 		String templateName = "templates" + File.separatorChar + "new" + robotType.toLowerCase() + ".tpt";
 
-		String template = readTemplateFile(templateName);
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		String template = populateTemplate(templateName, name, packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 		editorPane.setText(template);
