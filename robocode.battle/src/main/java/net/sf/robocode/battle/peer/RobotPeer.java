@@ -160,7 +160,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 			team.add(this);
 		}
 		String teamName;
-		List<String> teamMembers; 
+		List<String> teamMembers;
 		boolean isTeamLeader;
 		int teamIndex;
 
@@ -221,7 +221,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	}
 
 	// -------------------
-	// statics 
+	// statics
 	// -------------------
 
 	public boolean isJuniorRobot() {
@@ -281,7 +281,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	}
 
 	// -------------------
-	// status 
+	// status
 	// -------------------
 
 	public void setPaintEnabled(boolean enabled) {
@@ -422,11 +422,11 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				if (otherRobot == mate) {
 					return true;
 				}
-			}	
+			}
 		}
 		return false;
 	}
-	
+
 	// -----------
 	// execute
 	// -----------
@@ -522,7 +522,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		final boolean shouldWait = battle.isAborted() || (battle.isLastRound() && !isWinner());
 
 		readoutTeamMessages(); // throw away
-		
+
 		return new ExecResults(resCommands, resStatus, readoutEvents(), new ArrayList<TeamMessage>(), readoutBullets(),
 				isHalt(), shouldWait, false);
 	}
@@ -696,7 +696,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				if (isSentryRobot()) {
 					boolean placeOnHorizontalBar = random.nextDouble()
 							<= ((double) battleRules.getBattlefieldWidth()
-									/ (battleRules.getBattlefieldWidth() + battleRules.getBattlefieldHeight()));
+							/ (battleRules.getBattlefieldWidth() + battleRules.getBattlefieldHeight()));
 
 					if (placeOnHorizontalBar) {
 						x = halfRobotWidth + rndX * maxWidth;
@@ -712,7 +712,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 						x = sentryBorderSize + RobotPeer.WIDTH + rndX * (safeZoneWidth - 2 * RobotPeer.WIDTH);
 						y = sentryBorderSize + RobotPeer.HEIGHT + rndY * (safeZoneHeight - 2 * RobotPeer.HEIGHT);
-					} else {				
+					} else {
 						x = RobotPeer.WIDTH + rndX * (battleRules.getBattlefieldWidth() - 2 * RobotPeer.WIDTH);
 						y = RobotPeer.HEIGHT + rndY * (battleRules.getBattlefieldHeight() - 2 * RobotPeer.HEIGHT);
 					}
@@ -806,13 +806,8 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		int others = battle.countActiveParticipants() - (isAlive() ? 1 : 0);
 		int numSentries = battle.countActiveSentries();
 
-		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
-				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
-				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
-				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
-
-		status.set(stat);
-		robotProxy.startRound(currentCommands, stat);
+		setRobotStatus(others, numSentries, currentCommands);
+		robotProxy.startRound(currentCommands, status.get());
 
 		synchronized (isSleeping) {
 			try {
@@ -923,7 +918,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		// Now check for robot collision
 		checkRobotCollision(robots);
-		
+
 		// Scan false means robot did not call scan() manually.
 		// But if we're moving, scan
 		if (!scan) {
@@ -1002,7 +997,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 			return otherRobot.getAnnonymousName();
 		}
 		return otherRobot.getName();
-	}		
+	}
 
 	private void checkRobotCollision(List<RobotPeer> robots) {
 		inCollision = false;
@@ -1047,17 +1042,17 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 								if (bonus > 0) {
 									println(
 											"SYSTEM: Ram bonus for killing " + this.getNameForEvent(otherRobot) + ": "
-											+ (int) (bonus + .5));
+													+ (int) (bonus + .5));
 								}
 							}
 						}
 					}
 					addEvent(
 							new HitRobotEvent(getNameForEvent(otherRobot), normalRelativeAngle(angle - bodyHeading),
-							otherRobot.energy, atFault));
+									otherRobot.energy, atFault));
 					otherRobot.addEvent(
 							new HitRobotEvent(getNameForEvent(this),
-							normalRelativeAngle(PI + angle - otherRobot.getBodyHeading()), energy, false));
+									normalRelativeAngle(PI + angle - otherRobot.getBodyHeading()), energy, false));
 				}
 			}
 		}
@@ -1138,18 +1133,22 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				y = maxY;
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
+	}
+
+	private void updateStatusForHitWallEvent() {
+		// Update energy, but do not reset inactiveTurnCount
+		if (statics.isAdvancedRobot()) {
+			setEnergy(energy - Rules.getWallHitDamage(velocity), false);
+		}
+
+		updateBoundingBox();
+
+		currentCommands.setDistanceRemaining(0);
+		velocity = 0;
+
+		setState(RobotState.HIT_WALL);
 	}
 
 	private void checkSentryOutsideBorder() {
@@ -1165,7 +1164,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		double angle = 0;
 
 		boolean isOutsideBorder = x > minX && x < maxX && y > minY && y < maxY;
-		
+
 		if (isOutsideBorder) {
 			if ((x - minX) <= Rules.MAX_VELOCITY) {
 				hitWall = true;
@@ -1221,17 +1220,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 				}
 			}
 
-			// Update energy, but do not reset inactiveTurnCount
-			if (statics.isAdvancedRobot()) {
-				setEnergy(energy - Rules.getWallHitDamage(velocity), false);
-			}
-
-			updateBoundingBox();
-
-			currentCommands.setDistanceRemaining(0);
-			velocity = 0;
-
-			setState(RobotState.HIT_WALL);
+			updateStatusForHitWallEvent();
 		}
 	}
 
@@ -1256,7 +1245,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 					&& !(event instanceof DeathEvent || event instanceof WinEvent || event instanceof SkippedTurnEvent)) {
 				println(
 						"Not adding to " + statics.getShortName() + "'s queue, exceeded " + EventManager.MAX_QUEUE_SIZE
-						+ " events in queue.");
+								+ " events in queue.");
 				// clean up old stuff
 				queue.clear(battle.getTime() - EventManager.MAX_EVENT_STACK);
 			} else {
@@ -1265,46 +1254,37 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		}
 	}
 
-	// Helper method to adjust radar based on gun turn with a specified turn rate
-	private void adjustRadarForGunTurn(double turnRate) {
-		radarHeading += turnRate;
+	private void updateGunHeading() {
+		double gunTurnRemaining = currentCommands.getGunTurnRemaining();
+
+		if (gunTurnRemaining > 0) {
+			// Handle positive gun turn remaining
+			if (gunTurnRemaining < Rules.GUN_TURN_RATE_RADIANS) {
+				updateHeadingAndTurn(gunTurnRemaining);
+			} else {
+				updateHeadingAndTurn(Rules.GUN_TURN_RATE_RADIANS);
+			}
+		} else if (gunTurnRemaining < 0) {
+			// Handle negative gun turn remaining
+			if (gunTurnRemaining > -Rules.GUN_TURN_RATE_RADIANS) {
+				updateHeadingAndTurn(gunTurnRemaining);
+			} else {
+				updateHeadingAndTurn(-Rules.GUN_TURN_RATE_RADIANS);
+			}
+		}
+
+		gunHeading = normalAbsoluteAngle(gunHeading);
+	}
+	private void updateHeadingAndTurn(double turnAmount) {
+		gunHeading += turnAmount;
+		radarHeading += turnAmount;
 
 		if (currentCommands.isAdjustRadarForGunTurn()) {
 			currentCommands.setRadarTurnRemaining(
-					currentCommands.getRadarTurnRemaining() - turnRate);
+					currentCommands.getRadarTurnRemaining() - turnAmount);
 		}
+		currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnAmount);
 	}
-
-	private void updateGunHeading() {
-		if (currentCommands.getGunTurnRemaining() > 0) {
-			if (currentCommands.getGunTurnRemaining() < Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				adjustRadarForGunTurn(currentCommands.getGunTurnRemaining());
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading += Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading += Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - Rules.GUN_TURN_RATE_RADIANS);
-				adjustRadarForGunTurn(Rules.GUN_TURN_RATE_RADIANS);
-			}
-		} else if (currentCommands.getGunTurnRemaining() < 0) {
-			if (currentCommands.getGunTurnRemaining() > -Rules.GUN_TURN_RATE_RADIANS) {
-				gunHeading += currentCommands.getGunTurnRemaining();
-				adjustRadarForGunTurn(currentCommands.getGunTurnRemaining());
-				currentCommands.setGunTurnRemaining(0);
-			} else {
-				gunHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				radarHeading -= Rules.GUN_TURN_RATE_RADIANS;
-				currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				if (currentCommands.isAdjustRadarForGunTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() + Rules.GUN_TURN_RATE_RADIANS);
-				}
-			}
-		}
-		gunHeading = normalAbsoluteAngle(gunHeading);
-	}
-
 	private void updateHeading() {
 		boolean normalizeHeading = true;
 
@@ -1313,55 +1293,19 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 
 		if (currentCommands.getBodyTurnRemaining() > 0) {
 			if (currentCommands.getBodyTurnRemaining() < turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading += turnRate;
-				gunHeading += turnRate;
-				radarHeading += turnRate;
+				adjustHeadings(turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() - turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRate);
-				}
 			}
 		} else if (currentCommands.getBodyTurnRemaining() < 0) {
 			if (currentCommands.getBodyTurnRemaining() > -turnRate) {
-				bodyHeading += currentCommands.getBodyTurnRemaining();
-				gunHeading += currentCommands.getBodyTurnRemaining();
-				radarHeading += currentCommands.getBodyTurnRemaining();
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(
-							currentCommands.getGunTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(
-							currentCommands.getRadarTurnRemaining() - currentCommands.getBodyTurnRemaining());
-				}
+				adjustHeadings(currentCommands.getBodyTurnRemaining());
 				currentCommands.setBodyTurnRemaining(0);
 			} else {
-				bodyHeading -= turnRate;
-				gunHeading -= turnRate;
-				radarHeading -= turnRate;
+				adjustHeadings(-turnRate);
 				currentCommands.setBodyTurnRemaining(currentCommands.getBodyTurnRemaining() + turnRate);
-				if (currentCommands.isAdjustGunForBodyTurn()) {
-					currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() + turnRate);
-				}
-				if (currentCommands.isAdjustRadarForBodyTurn()) {
-					currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() + turnRate);
-				}
 			}
 		} else {
 			normalizeHeading = false;
@@ -1457,7 +1401,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 	 * @param velocity the current velocity
 	 * @param distance the distance to move
 	 * @return the new velocity based on the current velocity and distance to move
-	 * 
+	 *
 	 * This is Patrick Cupka (aka Voidious), Julian Kent (aka Skilgannon), and Positive's method described here:
 	 *   https://robowiki.net/wiki/User:Voidious/Optimal_Velocity#Hijack_2
 	 */
@@ -1593,27 +1537,27 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		boolean disableInRepository = false; // Per default, robots are not disabled in the repository
 
 		switch (badBehavior) {
-		case CANNOT_START:
-			message.append("could not be started or loaded.");
-			disableInRepository = true; // Disable in repository when it cannot be started anyways
-			break;
+			case CANNOT_START:
+				message.append("could not be started or loaded.");
+				disableInRepository = true; // Disable in repository when it cannot be started anyways
+				break;
 
-		case UNSTOPPABLE:
-			message.append("cannot be stopped.");
-			break;
+			case UNSTOPPABLE:
+				message.append("cannot be stopped.");
+				break;
 
-		case SKIPPED_TOO_MANY_TURNS:
-			message.append("has skipped too many turns.");
-			break;
+			case SKIPPED_TOO_MANY_TURNS:
+				message.append("has skipped too many turns.");
+				break;
 
-		case SECURITY_VIOLATION:
-			message.append("has caused a security violation.");
-			disableInRepository = true; // No mercy here!
-			break;
+			case SECURITY_VIOLATION:
+				message.append("has caused a security violation.");
+				disableInRepository = true; // No mercy here!
+				break;
 		}
 
 		if (disableInRepository) {
-			repositoryItem.setValid(false);			
+			repositoryItem.setValid(false);
 			message.append(" This ").append(repositoryItem.isTeam() ? "team" : "robot").append(
 					" has been banned and will not be allowed to participate in battles.");
 		}
@@ -1729,12 +1673,7 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		int others = battle.countActiveParticipants() - (isDead() || isSentryRobot() ? 0 : 1);
 		int numSentries = battle.countActiveSentries();
 
-		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
-				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
-				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
-				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
-
-		status.set(stat);
+		setRobotStatus(others, numSentries, currentCommands);
 	}
 
 	void addBulletStatus(BulletStatus bulletStatus) {
@@ -1760,11 +1699,34 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		return 0;
 	}
 
+	private void adjustHeadings(double turnRemaining) {
+
+		bodyHeading += turnRemaining;
+		gunHeading += turnRemaining;
+		radarHeading += turnRemaining;
+
+		if (currentCommands.isAdjustGunForBodyTurn()) {
+			currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnRemaining);
+		}
+		if (currentCommands.isAdjustRadarForBodyTurn()) {
+			currentCommands.setRadarTurnRemaining(currentCommands.getRadarTurnRemaining() - turnRemaining);
+		}
+	}
+
 	@Override
 	public String toString() {
 		return statics.getShortName() + "(" + (int) energy + ") X" + (int) x + " Y" + (int) y
 				+ " ~" + Utils.angleToApproximateDirection(bodyHeading)
 				+ " " + state.toString()
 				+ (isSleeping() ? " sleeping " : "") + (isRunning() ? " running" : "") + (isHalt() ? " halted" : "");
+	}
+
+	private void setRobotStatus (int others, int numSentries, ExecCommands currentCommands) {
+		RobotStatus stat = HiddenAccess.createStatus(energy, x, y, bodyHeading, gunHeading, radarHeading, velocity,
+				currentCommands.getBodyTurnRemaining(), currentCommands.getRadarTurnRemaining(),
+				currentCommands.getGunTurnRemaining(), currentCommands.getDistanceRemaining(), gunHeat, others, numSentries,
+				battle.getRoundNum(), battle.getNumRounds(), battle.getTime());
+
+		status.set(stat);
 	}
 }
