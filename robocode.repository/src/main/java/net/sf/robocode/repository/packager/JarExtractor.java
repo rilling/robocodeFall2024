@@ -1,10 +1,3 @@
-/*
- * Copyright (c) 2001-2023 Mathew A. Nelson and Robocode contributors
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * https://robocode.sourceforge.io/license/epl-v10.html
- */
 package net.sf.robocode.repository.packager;
 
 import net.sf.robocode.io.FileUtil;
@@ -22,10 +15,16 @@ import java.util.jar.JarEntry;
 import java.net.URLConnection;
 import java.net.URL;
 
-/**
- * @author Pavel Savara (original)
- */
 public class JarExtractor {
+
+	// Helper method to create parent directories
+	private static void ensureParentDirectoryExists(File file) {
+		File parentDirectory = new File(file.getParent());
+		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
+			Logger.logError("Cannot create parent dir: " + parentDirectory);
+		}
+	}
+
 	public static void extractJar(URL url) {
 		File dest = FileUtil.getRobotsDir();
 		InputStream is = null;
@@ -43,16 +42,11 @@ public class JarExtractor {
 
 			while (entry != null) {
 				if (entry.isDirectory()) {
-					File dir = new File(dest, entry.getName()); // Define 'dir' here
-
-					// Ensure parent directory exists
-					File parentDirectory = new File(dir.getParent()); // Define 'parentDirectory' here
-					if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-						Logger.logError("Cannot create parent dir: " + parentDirectory);
-					}
-
+					File dir = new File(dest, entry.getName());
+					// Use the helper method to create the parent directory
+					ensureParentDirectoryExists(dir);
 				} else {
-					extractFile(dest, jarIS, entry);
+					extractFile(dest, jarIS, entry); // Process files using the existing extractFile method
 				}
 				entry = jarIS.getNextJarEntry();
 			}
@@ -67,12 +61,9 @@ public class JarExtractor {
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
 		File out = new File(dest, entry.getName());
-		File parentDirectory = new File(out.getParent()); // Define 'parentDirectory' here
 
-		// Ensure the directory exists
-		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-			Logger.logError("Cannot create parent dir: " + parentDirectory);
-		}
+		// Use the helper method to create the parent directory
+		ensureParentDirectoryExists(out);
 
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
@@ -83,7 +74,6 @@ public class JarExtractor {
 			bos = new BufferedOutputStream(fos);
 
 			int num;
-
 			while ((num = jarIS.read(buf, 0, 2048)) != -1) {
 				bos.write(buf, 0, num);
 			}
