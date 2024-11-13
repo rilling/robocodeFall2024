@@ -14,6 +14,7 @@ import robocode.control.snapshot.IScoreSnapshot;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 
 /**
@@ -283,12 +284,7 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 			double myScore = getTotalScore() + getCurrentScore();
 			double hisScore = scoreSnapshot.getTotalScore() + scoreSnapshot.getCurrentScore();
 
-			if (myScore < hisScore) {
-				return -1;
-			}
-			if (myScore > hisScore) {
-				return 1;
-			}
+			return Double.compare(myScore, hisScore);
 		}
 		return 0;
 	}
@@ -335,7 +331,13 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 	ScoreSnapshot(String contestantName) {
 		this.name = contestantName;
 	}
-
+ private void expectAttribute(String attributeName, String shortcut, Consumer<String> consumer, XmlReader reader) {
+        reader.expect(attributeName, shortcut, new XmlReader.Attribute() {
+            public void read(String value) {
+                consumer.accept(value);
+            }
+        });
+    }
 	/**
 	 * {@inheritDoc}
 	 */
@@ -399,11 +401,8 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 						snapshot.totalThirds = Integer.parseInt(value);
 					}
 				});
-				reader.expect("currentScore", "c", new XmlReader.Attribute() {
-					public void read(String value) {
-						snapshot.currentScore = Double.parseDouble(value);
-					}
-				});
+				expectAttribute("currentScore", "c", value -> snapshot.currentScore = Double.parseDouble(value),
+                        reader);
 				reader.expect("currentSurvivalScore", "ss", new XmlReader.Attribute() {
 					public void read(String value) {
 						snapshot.currentSurvivalScore = Double.parseDouble(value);
