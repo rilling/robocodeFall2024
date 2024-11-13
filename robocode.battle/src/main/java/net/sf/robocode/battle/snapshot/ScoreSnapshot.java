@@ -283,12 +283,7 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 			double myScore = getTotalScore() + getCurrentScore();
 			double hisScore = scoreSnapshot.getTotalScore() + scoreSnapshot.getCurrentScore();
 
-			if (myScore < hisScore) {
-				return -1;
-			}
-			if (myScore > hisScore) {
-				return 1;
-			}
+			return Double.compare(myScore, hisScore);
 		}
 		return 0;
 	}
