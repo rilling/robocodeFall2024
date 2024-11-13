@@ -75,7 +75,7 @@ public class BattleManager implements IBattleManager {
 
 	public synchronized void cleanup() {
 		if (battle != null) {
-			battle.waitTillOver();
+			battle.waitUntil(false);
 			battle.cleanup();
 		}
 		battle = null;
@@ -167,15 +167,15 @@ public class BattleManager implements IBattleManager {
 		// Wait until the realBattle is running and ended.
 		// This must be done as a new realBattle could be started immediately after this one causing
 		// multiple realBattle threads to run at the same time, which must be prevented!
-		realBattle.waitTillStarted();
+		realBattle.waitUntil(true);
 		if (waitTillOver) {
-			realBattle.waitTillOver();
+			realBattle.waitUntil(false);
 		}
 	}
 
 	public void waitTillOver() {
 		if (battle != null) {
-			battle.waitTillOver();
+			battle.waitUntil(false);
 		}
 	}
 
