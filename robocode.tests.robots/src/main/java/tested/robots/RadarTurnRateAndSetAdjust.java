@@ -16,7 +16,7 @@ public class RadarTurnRateAndSetAdjust extends robocode.AdvancedRobot {
 		// -- Turn 1 --
 		setTurnRadarRight(1000);
 		executeAndDumpTurnRate();
-		// Expected turn rate: max. radar turn rate = 45
+		// Expected turn rate is : max. radar turn rate = 45
 
 		// -- Turn 2 --
 		setTurnGunRight(1000);
