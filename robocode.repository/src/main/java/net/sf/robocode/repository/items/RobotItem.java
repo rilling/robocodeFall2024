@@ -549,40 +549,35 @@ public class RobotItem extends RobotSpecItem implements IRobotItem {
 	}
 
 	public String getReadableDirectory() {
-		String path;
-		if (root.isJAR()) {
-			String jarFile = getClassPathURL().getFile();
-			jarFile = jarFile.substring(jarFile.lastIndexOf('/') + 1);
-			path = FileUtil.getRobotsDataDir().getPath();
-			if (jarFile.length() > 0) {
-				path += File.separator + jarFile + '_';
-			}
-		} else {
-			path = getClassPathURL().getFile();
-		}
-		if (getFullPackage() != null) {
-			path += File.separator + getFullPackage().replace('.', File.separatorChar);
-		}
-		return path;
+		String path = root.isJAR() ? getJarPath() : getNonJarPath(false);
+        return appendPackagePath(path);
 	}
 
 	public String getWritableDirectory() {
-		String path;
-		if (root.isJAR()) {
-			String jarFile = getClassPathURL().getFile();	
-			jarFile = jarFile.substring(jarFile.lastIndexOf('/') + 1);
-			path = FileUtil.getRobotsDataDir().getPath();
-			if (jarFile.length() > 0) {
-				path += File.separator + jarFile + '_';
-			}
-		} else {
-			path = ALWAYS_USE_CACHE_FOR_DATA ? FileUtil.getRobotsDataDir().getPath() : getClassPathURL().getFile();
-		}
-		if (getFullPackage() != null) {
-			path += File.separator + getFullPackage().replace('.', File.separatorChar);
-		}
-		return path;
+		String path = root.isJAR() ? getJarPath() : getNonJarPath(ALWAYS_USE_CACHE_FOR_DATA);
+        return appendPackagePath(path);
 	}
+
+	private String getJarPath() {
+        String jarFile = getClassPathURL().getFile();
+        jarFile = jarFile.substring(jarFile.lastIndexOf('/') + 1);
+        String path = FileUtil.getRobotsDataDir().getPath();
+        if (jarFile.length() > 0) {
+            path += File.separator + jarFile + '_';
+        }
+        return path;
+    }
+
+	private String getNonJarPath(boolean useCache) {
+        return useCache ? FileUtil.getRobotsDataDir().getPath() : getClassPathURL().getFile();
+    }
+
+	private String appendPackagePath(String path) {
+        if (getFullPackage() != null) {
+            path += File.separator + getFullPackage().replace('.', File.separatorChar);
+        }
+        return path;
+    }
 
 	public RobotSpecification createRobotSpecification(RobotSpecification battleRobotSpec, String teamName) {
 		RobotSpecification specification;

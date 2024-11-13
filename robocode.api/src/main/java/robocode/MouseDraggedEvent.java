@@ -92,29 +92,11 @@ public final class MouseDraggedEvent extends MouseEvent {
 
 		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {
 			MouseDraggedEvent obj = (MouseDraggedEvent) object;
-			java.awt.event.MouseEvent src = obj.getSourceEvent();
-
-			serializer.serialize(buffer, src.getButton());
-			serializer.serialize(buffer, src.getClickCount());
-			serializer.serialize(buffer, src.getX());
-			serializer.serialize(buffer, src.getY());
-			serializer.serialize(buffer, src.getID());
-			serializer.serialize(buffer, src.getModifiersEx());
-			serializer.serialize(buffer, src.getWhen());
+			MouseEventSerializer.serialize(serializer, buffer, obj.getSourceEvent());
 		}
 
 		public Object deserialize(RbSerializer serializer, ByteBuffer buffer) {
-			int button = buffer.getInt();
-			int clickCount = buffer.getInt();
-			int x = buffer.getInt();
-			int y = buffer.getInt();
-			int id = buffer.getInt();
-			int modifiersEx = buffer.getInt();
-			long when = buffer.getLong();
-
-			return new MouseDraggedEvent(
-					new java.awt.event.MouseEvent(SafeComponent.getSafeEventComponent(), id, when, modifiersEx, x, y,
-					clickCount, false, button));
+			return new MouseDraggedEvent(MouseEventSerializer.deserialize(serializer, buffer));
 		}
 	}
 

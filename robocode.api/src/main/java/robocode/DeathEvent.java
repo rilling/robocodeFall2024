@@ -81,18 +81,36 @@ public final class DeathEvent extends Event {
 	}
 
 	static ISerializableHelper createHiddenSerializer() {
-		return new SerializableHelper();
+		return new SerializableHelper(new DeathEvent());
+
 	}
 
-	private static class SerializableHelper implements ISerializableHelper {
+	static class SerializableHelper implements ISerializableHelper {
+
+		private Event eventInstance;
+
+		public SerializableHelper(Event eventInstance) {
+			this.eventInstance = eventInstance;
+		}
+
+		@Override
 		public int sizeOf(RbSerializer serializer, Object object) {
 			return RbSerializer.SIZEOF_TYPEINFO;
 		}
 
-		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {}
+		@Override
+		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {
+		}
 
+		@Override
 		public Object deserialize(RbSerializer serializer, ByteBuffer buffer) {
-			return new DeathEvent();
+			if (eventInstance instanceof WinEvent) {
+				return new WinEvent();
+			} else if (eventInstance instanceof DeathEvent) {
+				return new DeathEvent();
+			}
+
+			return null;
 		}
 	}
 }
