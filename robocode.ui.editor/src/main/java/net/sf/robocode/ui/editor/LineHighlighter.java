@@ -103,20 +103,23 @@ public final class LineHighlighter {
 		}
 	};
 
+	private static void handleMouseEvent(MouseEvent e) {
+		JTextComponent c = (JTextComponent) e.getSource();
+		caretUpdate(c);
+	}
+
 	private static final MouseListener mouseListener = new MouseAdapter() {
 		// highlight the line the user clicks on
 		@Override
 		public void mousePressed(MouseEvent e) {
-			JTextComponent c = (JTextComponent) e.getSource();
-			caretUpdate(c);
+			handleMouseEvent(e);
 		}
 	};
 
 	private static final MouseMotionListener mouseMotionListener = new MouseMotionAdapter() {
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			JTextComponent c = (JTextComponent) e.getSource();
-			caretUpdate(c);
+			handleMouseEvent(e);
 		}
 	};
 

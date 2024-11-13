@@ -662,15 +662,7 @@ public final class Battle extends BaseBattle {
 				// This call blocks until the robot's thread actually wakes up.
 				robotPeer.waitWakeup();
 
-				if (robotPeer.isAlive()) {
-					if (isDebugging() || robotPeer.isPaintEnabled()) {
-						robotPeer.waitSleeping(DEBUG_TURN_WAIT_MILLIS, 1);
-					} else if (currentTime == 1) {
-						robotPeer.waitSleeping(millisWait * 10, 1);
-					} else {
-						robotPeer.waitSleeping(millisWait, nanoWait);
-					}
-				}
+				handleRobotWaiting(robotPeer, millisWait, nanoWait, currentTime);
 			}
 		}
 	}
@@ -683,14 +675,20 @@ public final class Battle extends BaseBattle {
 			}
 		}
 		for (RobotPeer robotPeer : robotsAtRandom) {
-			if (robotPeer.isRunning() && robotPeer.isAlive()) {
-				if (isDebugging() || robotPeer.isPaintEnabled()) {
-					robotPeer.waitSleeping(DEBUG_TURN_WAIT_MILLIS, 1);
-				} else if (currentTime == 1) {
-					robotPeer.waitSleeping(millisWait * 10, 1);
-				} else {
-					robotPeer.waitSleeping(millisWait, nanoWait);
-				}
+			if (robotPeer.isRunning()) {
+				handleRobotWaiting(robotPeer, millisWait, nanoWait, currentTime);
+			}
+		}
+	}
+
+	private void handleRobotWaiting(RobotPeer robotPeer, long millisWait, int nanoWait, int currentTime) {
+		if (robotPeer.isAlive()) {
+			if (isDebugging() || robotPeer.isPaintEnabled()) {
+				robotPeer.waitSleeping(DEBUG_TURN_WAIT_MILLIS, 1);
+			} else if (currentTime == 1) {
+				robotPeer.waitSleeping(millisWait * 10, 1);
+			} else {
+				robotPeer.waitSleeping(millisWait, nanoWait);
 			}
 		}
 	}

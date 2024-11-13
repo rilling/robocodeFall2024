@@ -149,58 +149,33 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 		return true;
 	}
 
+	private String populateTemplate(String templatePath, String className, String packageName) {
+		String template = "";
+		File templateFile = new File(FileUtil.getCwd(), templatePath);
+
+		try (FileInputStream fis = new FileInputStream(templateFile);
+			 DataInputStream dis = new DataInputStream(fis)) {
+			byte[] buffer = new byte[(int) templateFile.length()];
+			dis.readFully(buffer);
+			template = new String(buffer, StandardCharsets.UTF_8);
+
+			template = template.replace("$CLASSNAME", className);
+			template = template.replace("$PACKAGE", packageName);
+
+		} catch (IOException e) {
+			template = "Unable to read template file: " + templateFile.getPath();
+		}
+
+		return template;
+	}
+
 	public void createNewJavaFile() {
-		String packageName = null;
-
-		if (getActiveWindow() != null) {
-			packageName = getActiveWindow().getPackage();
-		}
-		if (packageName == null) {
-			packageName = "mypackage";
-		}
-
+		String packageName = getActiveWindow() != null ? getActiveWindow().getPackage() : "mypackage";
 		EditWindow editWindow = new EditWindow(repositoryManager, this, robotsDirectory);
 
-		String templateName = "templates" + File.separatorChar + "newjavafile.tpt";
-
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
-
-		String name = "MyClass";
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		// Use populateTemplate to load and process the template
+		String templatePath = "templates" + File.separatorChar + "newjavafile.tpt";
+		String template = populateTemplate(templatePath, "MyClass", packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 
@@ -216,6 +191,50 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 	public void createNewJuniorRobot() {
 		createNewRobot("JuniorRobot");
+	}
+	private boolean validatePackageName(String packageName, String message) {
+		if (packageName.length() == 0) {
+			return false;
+		}
+		if (packageName.length() > MAX_PACKAGE_NAME_LENGTH) {
+			return false;
+		}
+		char firstLetter = packageName.charAt(0);
+		if (firstLetter == '$' || firstLetter == '_') {
+			return false;
+		}
+		int firstLetterCodePoint = packageName.codePointAt(0);
+		if (!Character.isJavaIdentifierStart(firstLetterCodePoint)) {
+			return false;
+		}
+		for (int i = 1; i < packageName.length(); i++) {
+			char ch = packageName.charAt(i);
+			int codePoint = packageName.codePointAt(i);
+
+			if (!(Character.isJavaIdentifierPart(codePoint) || ch == '.') || ch == '$') {
+				return false;
+			}
+		}
+		if (packageName.charAt(packageName.length() - 1) == '.') {
+			return false;
+		}
+		boolean wrong_dot_combination = false;
+		int lastDotIndex = -1;
+
+		for (int i = 0; i < packageName.length(); i++) {
+			if (packageName.charAt(i) == '.') {
+				if (i - lastDotIndex == 1) {
+					wrong_dot_combination = true;
+					break;
+				}
+				lastDotIndex = i;
+			}
+		}
+		if (wrong_dot_combination) {return false;}
+		if (repositoryManager != null) {
+			return repositoryManager.verifyRobotName(packageName, message);
+		}
+		return true;
 	}
 
 	private void createNewRobot(final String robotType) {
@@ -301,35 +320,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 				return; // cancelled
 			}
 			packageName = packageName.trim();
-			if (packageName.length() == 0) {
-				message = ROBOT_PACKAGE_NAME_DESCRIPTION;				
-				continue;
-			}
-			if (packageName.length() > MAX_PACKAGE_NAME_LENGTH) {
-				packageName = packageName.substring(0, MAX_PACKAGE_NAME_LENGTH);
-				message = "Please choose a shorter name (up to " + MAX_PACKAGE_NAME_LENGTH + " characters)";
-				continue;
-			}
-
-			done = true;
-
-			char firstLetter = packageName.charAt(0);
-
-			if (firstLetter == '$' || firstLetter == '_') {
-				packageName = packageName.substring(1);
-				done = false;
-			}
-			int firstLetterCodePoint = packageName.codePointAt(0); // used for supporting Unicode methods
-
-			if (!Character.isJavaIdentifierStart(firstLetterCodePoint)) {
-				done = false;
-			}
-			if (!done) {
-				message = "Please start the package name with a small letter.\n"
-						+ "The entire package name should be written in lower-case letters\n"
-						+ "(Java convention), although Robocode will accept big case letters as well.";
-				continue;
-			}
+			done = validatePackageName(packageName, name);
 
 			char ch = 0;
 
@@ -343,32 +334,9 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 				}
 			}
 			if (!done) {
-				message = "Your package name contains an invalid character: '" + ch
-						+ "'\nPlease use only small letters and digits.";
-				continue;
-			}
-
-			if (packageName.charAt(packageName.length() - 1) == '.') {
-				message = "The package name cannot end with a dot";
-				done = false;
-				continue;
-			}
-
-			boolean wrong_dot_combination = false;
-			int lastDotIndex = -1;
-
-			for (int i = 0; i < packageName.length(); i++) {
-				if (packageName.charAt(i) == '.') {
-					if (i - lastDotIndex == 1) {
-						wrong_dot_combination = true;
-						break;
-					}
-					lastDotIndex = i;
-				}
-			}
-			if (wrong_dot_combination) {
-				message = "The package name contain two dots next to each other";
-				done = false;
+				message = "The package name contains invalid characters or format.\n" +
+						"Please use only letters, digits, and single dots.\n" +
+						"The package name should start with a letter.";
 				continue;
 			}
 
@@ -386,40 +354,7 @@ public class RobocodeEditor extends JFrame implements Runnable, IRobocodeEditor 
 
 		String templateName = "templates" + File.separatorChar + "new" + robotType.toLowerCase() + ".tpt";
 
-		String template = "";
-
-		File f = new File(FileUtil.getCwd(), templateName);
-		int size = (int) (f.length());
-		byte[] buff = new byte[size];
-		FileInputStream fis = null;
-		DataInputStream dis = null;
-
-		try {
-			fis = new FileInputStream(f);
-			dis = new DataInputStream(fis);
-			dis.readFully(buff);
-			template = new String(buff);
-		} catch (IOException e) {
-			template = "Unable to read template file: " + FileUtil.getCwd() + File.separatorChar + templateName;
-		} finally {
-			FileUtil.cleanupStream(fis);
-			FileUtil.cleanupStream(dis);
-		}
-
-		int index = template.indexOf("$");
-
-		while (index >= 0) {
-			if (template.startsWith("$CLASSNAME", index)) {
-				template = template.substring(0, index) + name + template.substring(index + 10);
-				index += name.length();
-			} else if (template.startsWith("$PACKAGE", index)) {
-				template = template.substring(0, index) + packageName + template.substring(index + 8);
-				index += packageName.length();
-			} else {
-				index++;
-			}
-			index = template.indexOf("$", index);
-		}
+		String template = populateTemplate(templateName, name, packageName);
 
 		EditorPane editorPane = editWindow.getEditorPane();
 		editorPane.setText(template);
