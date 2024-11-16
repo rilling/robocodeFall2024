@@ -79,7 +79,7 @@ public final class KeyTypedEvent extends KeyEvent {
 		return new SerializableHelper();
 	}
 
-	private static class SerializableHelper implements ISerializableHelper {
+	static class SerializableHelper implements ISerializableHelper {
 
 		public int sizeOf(RbSerializer serializer, Object object) {
 			return RbSerializer.SIZEOF_TYPEINFO + RbSerializer.SIZEOF_CHAR + RbSerializer.SIZEOF_INT
@@ -88,14 +88,17 @@ public final class KeyTypedEvent extends KeyEvent {
 
 		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {
 			KeyTypedEvent obj = (KeyTypedEvent) object;
-			java.awt.event.KeyEvent src = obj.getSourceEvent();
+			serialize(serializer, buffer, obj.getSourceEvent(), obj);
+		}
 
-			serializer.serialize(buffer, src.getKeyChar());
-			serializer.serialize(buffer, src.getKeyCode());
-			serializer.serialize(buffer, src.getKeyLocation());
-			serializer.serialize(buffer, src.getID());
-			serializer.serialize(buffer, src.getModifiersEx());
-			serializer.serialize(buffer, src.getWhen());
+		static void serialize(RbSerializer serializer, ByteBuffer buffer, java.awt.event.KeyEvent sourceEvent, Object obj) {
+
+            serializer.serialize(buffer, sourceEvent.getKeyChar());
+			serializer.serialize(buffer, sourceEvent.getKeyCode());
+			serializer.serialize(buffer, sourceEvent.getKeyLocation());
+			serializer.serialize(buffer, sourceEvent.getID());
+			serializer.serialize(buffer, sourceEvent.getModifiersEx());
+			serializer.serialize(buffer, sourceEvent.getWhen());
 		}
 
 		public Object deserialize(RbSerializer serializer, ByteBuffer buffer) {

@@ -86,6 +86,18 @@ public class WindowMenuItem extends JCheckBoxMenuItem implements ActionListener 
 		} catch (Throwable ignored) {}
 	}
 
+
+	/**
+	 * Gets a close button
+	 */
+	public static JButton createCloseButton(JButton closeButton, char mnemnonic, ActionListener actionListener) {
+		closeButton = new JButton();
+		closeButton.setText("Close");
+		closeButton.setMnemonic(mnemnonic);
+		closeButton.addActionListener(actionListener);
+		return closeButton;
+	}
+
 	/**
 	 * Returns the label that should be used. If the menu item is supposed to be
 	 * hidden, this may not be a real valid label.
@@ -219,18 +231,20 @@ public class WindowMenuItem extends JCheckBoxMenuItem implements ActionListener 
 	@Override
 	public boolean isVisible() {
 		if (type == SPECIAL_MORE) {
-			Container parent = getParent();
-
-			if (parent == null) {
-				return true;
-			}
-			int numWindows = parent.getComponentCount() - PRECEDING_WINDOW_MENU_ITEMS - SUBSEQUENT_WINDOW_MENU_ITEMS;
-
+			int numWindows = getNumWindows();
 			updateSelection();
 			return (numWindows <= 0) || (numWindows > WINDOW_MENU_MAX_SIZE);
 		}
 		updateSelection();
 		return getIndex() >= 0;
+	}
+
+	public int getNumWindows() {
+		Container parent = getParent();
+		if (parent == null) {
+			return 0;
+		}
+		return parent.getComponentCount() - PRECEDING_WINDOW_MENU_ITEMS - SUBSEQUENT_WINDOW_MENU_ITEMS;
 	}
 
 	/**
@@ -241,13 +255,7 @@ public class WindowMenuItem extends JCheckBoxMenuItem implements ActionListener 
 	@Override
 	public boolean isEnabled() {
 		if (type == SPECIAL_MORE) {
-			Container parent = getParent();
-
-			if (parent == null) {
-				return true;
-			}
-			int numWindows = parent.getComponentCount() - PRECEDING_WINDOW_MENU_ITEMS - SUBSEQUENT_WINDOW_MENU_ITEMS;
-
+			int numWindows = getNumWindows();
 			return (numWindows > 0);
 		}
 		return true;

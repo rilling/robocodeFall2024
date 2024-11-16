@@ -81,18 +81,6 @@ public final class WinEvent extends Event {
 	}
 
 	static ISerializableHelper createHiddenSerializer() {
-		return new SerializableHelper();
-	}
-
-	private static class SerializableHelper implements ISerializableHelper {
-		public int sizeOf(RbSerializer serializer, Object object) {
-			return RbSerializer.SIZEOF_TYPEINFO;
-		}
-
-		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {}
-
-		public Object deserialize(RbSerializer serializer, ByteBuffer buffer) {
-			return new WinEvent();
-		}
-	}
+        return new DeathEvent.SerializableHelper(new WinEvent());
+    }
 }
