@@ -105,29 +105,23 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 	}
 
 	private void readJarStream(Collection<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
-		final URL rootURL = new URL(root + "!/");
-
+		
+		final URL rootURL = validateAndCreateURL(root);
+	
 		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = ClassFileReader.createMainClassPredicate(rootURL);
-
+	
 		JarEntry entry = jarIS.getNextJarEntry();
 		while (entry != null) {
 			String fullName = entry.getName();
 			String name = fullName.toLowerCase();
-
+	
 			if (!entry.isDirectory()) {
 				if (name.contains(".data/") && !name.contains(".robotcache/")) {
 					JarExtractor.extractFile(FileUtil.getRobotsDataDir(), jarIS, entry);
 				} else {
 					if (name.endsWith(".jar") || name.endsWith(".zip")) {
-						JarInputStream inner = null;
-
-						try {
-							inner = new JarInputStream(jarIS);
+						try (JarInputStream inner = new JarInputStream(jarIS)) {
 							readJarStream(repositoryItems, "jar:jar" + root + JarJar.SEPARATOR + fullName, inner);
-						} finally {
-							if (inner != null) {
-								inner.closeEntry();								
-							}
 						}
 					} else if (name.endsWith(".class")) {
 						if (mainClassPredicate.isMainClassBinary(fullName.substring(0, fullName.length() - 6))) {
@@ -141,7 +135,23 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 			entry = jarIS.getNextJarEntry();
 		}
 	}
-
+	
+	private URL validateAndCreateURL(String root) throws MalformedURLException {
+		
+		URL url = new URL(root);
+	
+		if (!"http".equalsIgnoreCase(url.getProtocol()) && !"https".equalsIgnoreCase(url.getProtocol())) {
+			throw new MalformedURLException("Invalid protocol: " + url.getProtocol());
+		}
+	
+		String host = url.getHost();
+		if (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || host.startsWith("192.168.") || host.startsWith("10.") || host.startsWith("172.")) {
+			throw new MalformedURLException("Disallowed host: " + host);
+		}
+	
+		return url;
+	}
+	
 	private void createItem(Collection<IRepositoryItem> repositoryItems, URL root, JarEntry entry) {
 		try {
 			String pUrl = root.toString() + entry.getName();
