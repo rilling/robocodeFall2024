@@ -42,7 +42,7 @@ public class RobocodeSecurityManager extends SecurityManager {
 	}
 
 	@Override
-	public void checkAccess(Thread t) {
+	public final void checkAccess(Thread t) {
 		Thread c = Thread.currentThread();
 		if (isSafeThread(c)) {
 			return;
@@ -83,7 +83,7 @@ public class RobocodeSecurityManager extends SecurityManager {
 	}
 
 	@Override
-	public void checkAccess(ThreadGroup g) {
+	public final void checkAccess(ThreadGroup g) {
 		Thread c = Thread.currentThread();
 		if (isSafeThread(c)) {
 			return;
