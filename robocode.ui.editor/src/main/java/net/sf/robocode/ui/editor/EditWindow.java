@@ -290,22 +290,16 @@ public class EditWindow extends JInternalFrame {
 	private String getRobotDir() {
 		String saveDir = robotsDirectory.getPath() + File.separatorChar;
 
-		String text = getEditorPane().getText();
-		int pIndex = text.indexOf("package ");
+		String packageName = extractPackageName();  // Use the utility method
 
-		if (pIndex >= 0) {
-			int pEIndex = text.indexOf(";", pIndex);
-
-			if (pEIndex > 0) {
-				String packageTree = text.substring(pIndex + 8, pEIndex) + File.separatorChar;
-
-				packageTree = packageTree.replace('.', File.separatorChar);
-
-				saveDir += packageTree;
-			}
+		if (!packageName.isEmpty()) {
+			String packageTree = packageName + File.separatorChar;
+			packageTree = packageTree.replace('.', File.separatorChar);
+			saveDir += packageTree;
 		}
 		return saveDir;
 	}
+
 
 	public boolean fileSaveAs() {
 		String javaFileName = null;
@@ -419,7 +413,7 @@ public class EditWindow extends JInternalFrame {
 		return true;
 	}
 
-	public String getPackage() {
+	private String extractPackageName() {
 		String text = getEditorPane().getText();
 		int pIndex = text.indexOf("package ");
 
@@ -432,6 +426,13 @@ public class EditWindow extends JInternalFrame {
 		}
 		return "";
 	}
+
+
+	public String getPackage() {
+		String packageName = extractPackageName();  // Use the utility method
+		return packageName;  // Simply return the extracted package name
+	}
+
 
 	private String getReasonableFilename() {
 		StringBuffer fileName = new StringBuffer(robotsDirectory.getPath()).append(File.separatorChar);
