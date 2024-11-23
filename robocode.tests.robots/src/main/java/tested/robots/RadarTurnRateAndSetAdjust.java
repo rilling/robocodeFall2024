@@ -16,7 +16,7 @@ public class RadarTurnRateAndSetAdjust extends robocode.AdvancedRobot {
 		// -- Turn 1 --
 		setTurnRadarRight(1000);
 		executeAndDumpTurnRate();
-		// Expected turn rate: max. radar turn rate = 45
+		// Expected turn rate : max. radar turn rate = 45
 
 		// -- Turn 2 --
 		setTurnGunRight(1000);
@@ -27,7 +27,7 @@ public class RadarTurnRateAndSetAdjust extends robocode.AdvancedRobot {
 		setTurnRight(1000);
 		executeAndDumpTurnRate();
 		// Expected turn rate: max. robot + gun + radar turn rate = 10 + 20 + 45 = 75
-								
+
 		// -- Turn 4 --
 		setTurnRadarLeft(1000);
 		executeAndDumpTurnRate();
@@ -50,26 +50,13 @@ public class RadarTurnRateAndSetAdjust extends robocode.AdvancedRobot {
 		setTurnRadarRight(7);
 		executeAndDumpTurnRate();
 		// Expected turn rate: robot + gun + radar turn rate = 14 + 15 + 7 = 32
-		
-		// -- Turn 8 --
-		setAdjustGunForRobotTurn(false);
-		setAdjustRadarForRobotTurn(false);
-		setAdjustRadarForGunTurn(true);
-		setTurnRight(14);
-		setTurnGunLeft(15);
-		setTurnRadarRight(7);
-		executeAndDumpTurnRate();
-		// Expected turn rate: robot (max) + radar turn rate (ignoring gun turn rate, but not robot turn rate) = 10 + 7 = 17
 
-		// -- Turn 9 --
-		setAdjustGunForRobotTurn(false);
-		setAdjustRadarForRobotTurn(true);
-		setAdjustRadarForGunTurn(true);
-		setTurnRight(14);
-		setTurnGunLeft(15);
-		setTurnRadarRight(35);
-		executeAndDumpTurnRate();
-		// Expected turn rate: robot turn rate (ignoring both gun and body turn rate) = 35
+		// -- Turn 8 --
+		performTurn(14, 15, 7, false, true, true, false, true, 17);
+
+// -- Turn 9 --
+		performTurn(14, 15, 35, false, true, true, false, true, 35);
+
 
 		// -- Turn 10 --
 		setAdjustGunForRobotTurn(false);
@@ -121,6 +108,19 @@ public class RadarTurnRateAndSetAdjust extends robocode.AdvancedRobot {
 		executeAndDumpTurnRate();
 		// Expected turn rate: setAdjusts are all ignored, max. robot + gun + radar turn rate = -(-10) - (-20) - 45 = -15
 	}
+	private void performTurn(double turnRight, double turnGun, double turnRadar, boolean adjustGun, boolean adjustRadar, boolean adjustGunForRobotTurn, boolean adjustRadarForRobotTurn, boolean adjustRadarForGunTurn, double expectedTurnRate) {
+		setAdjustGunForRobotTurn(adjustGunForRobotTurn);
+		setAdjustRadarForRobotTurn(adjustRadarForRobotTurn);
+		setAdjustRadarForGunTurn(adjustRadarForGunTurn);
+
+		setTurnRight(turnRight);
+		setTurnGunLeft(turnGun);
+		setTurnRadarRight(turnRadar);
+
+		executeAndDumpTurnRate();
+		// Expected turn rate: "robot (max) + radar turn rate (ignoring gun turn rate, but not robot turn rate) = " + expectedTurnRate;
+	}
+
 
 	private void executeAndDumpTurnRate() {
 		double lastHeading = getRadarHeading();

@@ -149,20 +149,15 @@ public class JarCreator {
 	}
 
 	private static void addRobotFilesToJar(JarOutputStream target, Set<String> jarEntries, String robotPathWithoutFileExt, IRobotItem robotItem, RobotProperties props) throws IOException {
-		addClassFileToJar(target, jarEntries, robotPathWithoutFileExt, robotItem);
-		addPropertiesFileToJar(target, jarEntries, robotPathWithoutFileExt, robotItem);
+		addFileToJar(target, jarEntries, robotPathWithoutFileExt, robotItem, ".class");
+		addFileToJar(target, jarEntries, robotPathWithoutFileExt, robotItem, ".properties");
 		addJavaFileToJar(target, jarEntries, robotPathWithoutFileExt, robotItem, props);
 		addDataDirToJar(target, jarEntries, robotPathWithoutFileExt, robotItem, props);
 	}
 
-	private static void addClassFileToJar(JarOutputStream target, Set<String> jarEntries, String robotPathWithoutFileExt, IRobotItem robotItem) throws IOException {
+	private static void addFileToJar(JarOutputStream target, Set<String> jarEntries, String robotPathWithoutFileExt, IRobotItem robotItem, String fileExtension) throws IOException {
 		String classRootPath = robotItem.getClassPathURL().getPath();
-		addToJar(target, jarEntries, classRootPath, robotPathWithoutFileExt, ".class");
-	}
-
-	private static void addPropertiesFileToJar(JarOutputStream target, Set<String> jarEntries, String robotPathWithoutFileExt, IRobotItem robotItem) throws IOException {
-		String classRootPath = robotItem.getClassPathURL().getPath();
-		addToJar(target, jarEntries, classRootPath, robotPathWithoutFileExt, ".properties");
+		addToJar(target, jarEntries, classRootPath, robotPathWithoutFileExt, fileExtension);
 	}
 
 	private static void addJavaFileToJar(JarOutputStream target, Set<String> jarEntries, String robotFilePath, IRobotItem robotItem, RobotProperties props) throws IOException {

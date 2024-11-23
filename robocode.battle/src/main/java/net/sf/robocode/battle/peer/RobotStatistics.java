@@ -193,44 +193,38 @@ public class RobotStatistics implements ContestantStatistics {
 		}
 	}
 
-	double scoreBulletKill(String robot) {
-		if (isActive) {
-			double bonus;
-
-			if (robotPeer.getTeamPeer() == null) {
-				bonus = getRobotDamage(robot) * 0.20;
-			} else {
-				bonus = 0;
-				for (RobotPeer teammate : robotPeer.getTeamPeer()) {
-					bonus += teammate.getRobotStatistics().getRobotDamage(robot) * 0.20;
-				}
-			}
-
-			bulletKillBonus += bonus;
-			return bonus;
-		}
-		return 0;
-	}
-
 	void scoreRammingDamage(String robot) {
 		if (isActive) {
 			incrementRobotDamage(robot, robocode.Rules.ROBOT_HIT_DAMAGE);
 			rammingDamageScore += robocode.Rules.ROBOT_HIT_BONUS;
 		}
 	}
+	
+	private double calculateKillBonus(String robot, double multiplier) {
+		double bonus = 0;
+
+		if (robotPeer.getTeamPeer() == null) {
+			bonus = getRobotDamage(robot) * multiplier;
+		} else {
+			for (RobotPeer teammate : robotPeer.getTeamPeer()) {
+				bonus += teammate.getRobotStatistics().getRobotDamage(robot) * multiplier;
+			}
+		}
+		return bonus;
+	}
+
+	double scoreBulletKill(String robot) {
+		if (isActive) {
+			double bonus = calculateKillBonus(robot, 0.20);
+			bulletKillBonus += bonus;
+			return bonus;
+		}
+		return 0;
+	}
 
 	double scoreRammingKill(String robot) {
 		if (isActive) {
-			double bonus;
-
-			if (robotPeer.getTeamPeer() == null) {
-				bonus = getRobotDamage(robot) * 0.30;
-			} else {
-				bonus = 0;
-				for (RobotPeer teammate : robotPeer.getTeamPeer()) {
-					bonus += teammate.getRobotStatistics().getRobotDamage(robot) * 0.30;
-				}
-			}
+			double bonus = calculateKillBonus(robot, 0.30);
 			rammingKillBonus += bonus;
 			return bonus;
 		}

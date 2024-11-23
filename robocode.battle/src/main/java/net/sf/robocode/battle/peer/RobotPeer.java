@@ -1102,25 +1102,10 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		if (hitWall) {
 			addEvent(new HitWallEvent(angle));
 
-			// only fix both x and y values if hitting wall at an angle
-			if ((bodyHeading % (Math.PI / 2)) != 0) {
-				double tanHeading = tan(bodyHeading);
+			ArrayList<Double> coordinates = correctXYforWallHit(adjustX, adjustY);
 
-				// if it hits bottom or top wall
-				if (adjustX == 0) {
-					adjustX = adjustY * tanHeading;
-				} // if it hits a side wall
-				else if (adjustY == 0) {
-					adjustY = adjustX / tanHeading;
-				} // if the robot hits 2 walls at the same time (rare, but just in case)
-				else if (abs(adjustX / tanHeading) > abs(adjustY)) {
-					adjustY = adjustX / tanHeading;
-				} else if (abs(adjustY * tanHeading) > abs(adjustX)) {
-					adjustX = adjustY * tanHeading;
-				}
-			}
-			x += adjustX;
-			y += adjustY;
+			x += coordinates.get(0);
+			y += coordinates.get(1);
 
 			if (x < minX) {
 				x = minX;
@@ -1149,6 +1134,30 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		velocity = 0;
 
 		setState(RobotState.HIT_WALL);
+	}
+	
+	private ArrayList<Double> correctXYforWallHit(double adjustX, double adjustY) {
+		// only fix both x and y values if hitting wall at an angle
+		if ((bodyHeading % (Math.PI / 2)) != 0) {
+			double tanHeading = tan(bodyHeading);
+
+			// if it hits bottom or top wall
+			if (adjustX == 0) {
+				adjustX = adjustY * tanHeading;
+			} // if it hits a side wall
+			else if (adjustY == 0) {
+				adjustY = adjustX / tanHeading;
+			} // if the robot hits 2 walls at the same time (rare, but just in case)
+			else if (abs(adjustX / tanHeading) > abs(adjustY)) {
+				adjustY = adjustX / tanHeading;
+			} else if (abs(adjustY * tanHeading) > abs(adjustX)) {
+				adjustX = adjustY * tanHeading;
+			}
+		}
+		ArrayList<Double> coordinates = new ArrayList<Double>();
+		coordinates.add(adjustX);
+		coordinates.add(adjustY);
+		return coordinates;
 	}
 
 	private void checkSentryOutsideBorder() {
@@ -1191,21 +1200,10 @@ public final class RobotPeer implements IRobotPeerBattle, IRobotPeer {
 		if (hitWall) {
 			addEvent(new HitWallEvent(angle));
 
-			// only fix both x and y values if hitting wall at an angle
-			if ((bodyHeading % (Math.PI / 2)) != 0) {
-				double tanHeading = tan(bodyHeading);
+			ArrayList<Double> coordinates = correctXYforWallHit(adjustX, adjustY);
 
-				// if it hits bottom or top wall
-				if (adjustX == 0) {
-					adjustX = adjustY * tanHeading;
-				} // if it hits a side wall
-				else {
-					adjustY = adjustX / tanHeading;
-				} // if the robot hits 2 walls at the same time (rare, but just in case)
-			}
-
-			x += adjustX;
-			y += adjustY;
+			x += coordinates.get(0);
+			y += coordinates.get(1);
 
 			if (isOutsideBorder) {
 				if ((x - minX) <= Rules.MAX_VELOCITY) {
@@ -1690,13 +1688,7 @@ private void updateHeadingAndTurn(double turnAmount) {
 			myScore += statistics.getCurrentScore();
 			hisScore += cp.getStatistics().getCurrentScore();
 		}
-		if (myScore < hisScore) {
-			return -1;
-		}
-		if (myScore > hisScore) {
-			return 1;
-		}
-		return 0;
+		return Double.compare(myScore, hisScore);
 	}
 
 	private void adjustHeadings(double turnRemaining) {
