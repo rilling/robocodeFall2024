@@ -85,7 +85,7 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
 
     public RobotTestBed() {
         if (engine == null) {
-            beforeInit();
+            beforeInitCall();
             engine = new RobocodeEngine();
             afterInit();
         }
@@ -169,6 +169,10 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
 
     public boolean isEnableScreenshots() {
         return false;
+    }
+
+    private void beforeInitCall() {
+        beforeInit();
     }
 
     protected void beforeInit() {
