@@ -87,11 +87,15 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
         if (engine == null) {
             beforeInitCall();
             engine = new RobocodeEngine();
-            afterInit();
+            afterInitInvoker();
         }
 
         errors = 0;
         messages = 0;
+    }
+
+    private void afterInitInvoker() {
+        afterInit();
     }
 
     /**
