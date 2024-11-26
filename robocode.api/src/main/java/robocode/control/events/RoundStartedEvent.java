@@ -11,6 +11,8 @@ package robocode.control.events;
 import robocode.control.snapshot.ITurnSnapshot;
 import robocode.robotinterfaces.IBasicRobot;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -43,7 +45,8 @@ public class RoundStartedEvent extends BattleEvent {
 		super();
 		this.startSnapshot = startSnapshot;
 		this.round = round;
-		this.robotObjects = robotObjects;
+
+		this.robotObjects = (robotObjects != null) ? new ArrayList<>(robotObjects) : new ArrayList<>();
 	}
 
 	/**
@@ -68,7 +71,7 @@ public class RoundStartedEvent extends BattleEvent {
 	/**
 	 * @return instances of robots for integration testing
 	 */
-	public List<IBasicRobot> getRobotObjects(){
-		return robotObjects;
+	public List<IBasicRobot> getRobotObjects() {
+		return Collections.unmodifiableList(robotObjects);
 	}
 }
