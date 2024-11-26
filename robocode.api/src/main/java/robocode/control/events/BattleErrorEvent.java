@@ -29,12 +29,21 @@ public class BattleErrorEvent extends BattleEvent {
 	 * Please don't use this constructor as it might change.
 	 *
 	 * @param error the error message from the game.
-	 * @param throwable instance of the error
+	 * @param throwable the error instance, which will be defensively copied.
 	 */
-	public BattleErrorEvent(String error,Throwable throwable) {
+	public BattleErrorEvent(String error, Throwable throwable) {
 		super();
 		this.error = error;
-		this.throwable = throwable;
+
+		if (throwable != null) {
+			this.throwable = new Throwable(throwable.getMessage(), throwable.getCause());
+			this.throwable.setStackTrace(throwable.getStackTrace());
+			for (Throwable suppressed : throwable.getSuppressed()) {
+				this.throwable.addSuppressed(suppressed);
+			}
+		} else {
+			this.throwable = null;
+		}
 	}
 
 	/**
@@ -47,11 +56,20 @@ public class BattleErrorEvent extends BattleEvent {
 	}
 
 	/**
-	 * Returns the error instance when available.
+	 * Returns a defensive copy of the error instance when available.
 	 *
-	 * @return the error instance that was sent from the game during the battle. Could be null.
+	 * @return a defensive copy of the error instance that was sent from the game during the battle.
+	 *         Could be null if no error instance is available.
 	 */
 	public Throwable getErrorInstance() {
-		return throwable;
+		if (throwable == null) {
+			return null;
+		}
+		Throwable copy = new Throwable(throwable.getMessage(), throwable.getCause());
+		copy.setStackTrace(throwable.getStackTrace());
+		for (Throwable suppressed : throwable.getSuppressed()) {
+			copy.addSuppressed(suppressed);
+		}
+		return copy;
 	}
 }
