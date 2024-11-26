@@ -11,12 +11,14 @@ package robocode.control.events;
 import robocode.control.snapshot.ITurnSnapshot;
 import robocode.robotinterfaces.IBasicRobot;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
 /**
  * A RoundStartedEvent is sent to {@link IBattleListener#onRoundStarted(RoundStartedEvent)
- * onRoundStarted()} when a new round in a battle is started. 
+ * onRoundStarted()} when a new round in a battle is started.
  *
  * @see IBattleListener
  * @see RoundEndedEvent
@@ -43,7 +45,8 @@ public class RoundStartedEvent extends BattleEvent {
 		super();
 		this.startSnapshot = startSnapshot;
 		this.round = round;
-		this.robotObjects = robotObjects;
+		// defensive copy of the mutable list to avoid exposing internal representation
+		this.robotObjects = new ArrayList<>(robotObjects);
 	}
 
 	/**
@@ -68,7 +71,7 @@ public class RoundStartedEvent extends BattleEvent {
 	/**
 	 * @return instances of robots for integration testing
 	 */
-	public List<IBasicRobot> getRobotObjects(){
-		return robotObjects;
+	public List<IBasicRobot> getRobotObjects() {
+		return Collections.unmodifiableList(robotObjects);
 	}
 }
