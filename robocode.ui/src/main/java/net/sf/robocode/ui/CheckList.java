@@ -131,28 +131,25 @@ public class CheckList extends JList {
 		}
 	}
 	
-	public Collection<String> getUnchecked() {
-		Collection<String> unchecked = new HashSet<String>();
+		private Collection<String> getItemsByCondition(java.util.function.Predicate<CheckListItem> condition) {
+		Collection<String> items = new HashSet<>();
 
 		for (int i = 0; i < model.getSize(); i++) {
 			CheckListItem item = (CheckListItem) model.getElementAt(i);
 
-			if (!item.isSelected()) {
-				unchecked.add(item.toString());
+			if (condition.test(item)) {
+				items.add(item.toString());
 			}
 		}
-		return unchecked;
+		return items;
 	}
-	
+
+	public Collection<String> getUnchecked() {
+		return getItemsByCondition(item -> !item.isSelected());
+	}
+
 	public Collection<String> getAll() {
-		Collection<String> all = new HashSet<String>();
-
-		for (int i = 0; i < model.getSize(); i++) {
-			CheckListItem item = (CheckListItem) model.getElementAt(i);
-
-			all.add(item.toString());
-		}
-		return all;
+		return getItemsByCondition(item -> true);
 	}
 }
 

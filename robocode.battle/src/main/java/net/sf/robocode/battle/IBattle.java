@@ -24,9 +24,7 @@ interface IBattle extends Runnable {
 
 	void step();
 
-	void waitTillStarted();
-
-	void waitTillOver();
+	void waitUntil(boolean waitForRunning);
 
 	void setPaintEnabled(int robotIndex, boolean enable);
 }
