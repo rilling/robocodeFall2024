@@ -304,7 +304,7 @@ public class RobotFileSystemManager {
 					}
 
 					is = jarFile.getInputStream(jarEntry);
-					os = new FileOutputStream(outputPath);
+					os = new FileOutputStream(outputPath.toFile());
 					copyStream(is, os);
 				} finally {
 					FileUtil.cleanupStream(is);
