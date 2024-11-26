@@ -45,8 +45,8 @@ public class RoundStartedEvent extends BattleEvent {
 		super();
 		this.startSnapshot = startSnapshot;
 		this.round = round;
-		// defensive copy of the mutable list to avoid exposing internal representation
-		this.robotObjects = new ArrayList<>(robotObjects);
+
+		this.robotObjects = (robotObjects != null) ? new ArrayList<>(robotObjects) : new ArrayList<>();
 	}
 
 	/**

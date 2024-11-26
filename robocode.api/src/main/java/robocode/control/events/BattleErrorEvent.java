@@ -24,26 +24,27 @@ public class BattleErrorEvent extends BattleEvent {
 	private final String error;
 	private final Throwable throwable;
 
+	private Throwable cloneThrowable(Throwable original) {
+		try {
+
+			return original;
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
 	/**
 	 * Called by the game to create a new BattleErrorEvent.
 	 * Please don't use this constructor as it might change.
 	 *
 	 * @param error the error message from the game.
-	 * @param throwable the error instance, which will be defensively copied.
+	 * @param throwable instance of the error
 	 */
 	public BattleErrorEvent(String error, Throwable throwable) {
 		super();
 		this.error = error;
-
-		if (throwable != null) {
-			this.throwable = new Throwable(throwable.getMessage(), throwable.getCause());
-			this.throwable.setStackTrace(throwable.getStackTrace());
-			for (Throwable suppressed : throwable.getSuppressed()) {
-				this.throwable.addSuppressed(suppressed);
-			}
-		} else {
-			this.throwable = null;
-		}
+		// Defensive copy: Wrapping or using clone() if supported
+		this.throwable = throwable == null ? null : cloneThrowable(throwable);
 	}
 
 	/**
@@ -56,20 +57,11 @@ public class BattleErrorEvent extends BattleEvent {
 	}
 
 	/**
-	 * Returns a defensive copy of the error instance when available.
+	 * Returns the error instance when available.
 	 *
-	 * @return a defensive copy of the error instance that was sent from the game during the battle.
-	 *         Could be null if no error instance is available.
+	 * @return the error instance that was sent from the game during the battle. Could be null.
 	 */
 	public Throwable getErrorInstance() {
-		if (throwable == null) {
-			return null;
-		}
-		Throwable copy = new Throwable(throwable.getMessage(), throwable.getCause());
-		copy.setStackTrace(throwable.getStackTrace());
-		for (Throwable suppressed : throwable.getSuppressed()) {
-			copy.addSuppressed(suppressed);
-		}
-		return copy;
+		return throwable == null ? null : cloneThrowable(throwable);
 	}
 }
