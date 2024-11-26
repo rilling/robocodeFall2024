@@ -17,6 +17,7 @@ import java.io.*;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -294,8 +295,16 @@ public class RobotFileSystemManager {
 				is = null;
 				os = null;
 				try {
+					// Validate and sanitize the filename
+					Path parentPath = parent.toPath().toRealPath();
+					Path outputPath = parentPath.resolve(filename).normalize();
+
+					if(!outputPath.startsWith(parentPath)) {
+						throw new IOException("Invalid path: " + filename);
+					}
+
 					is = jarFile.getInputStream(jarEntry);
-					os = new FileOutputStream(new File(parent, filename));
+					os = new FileOutputStream(outputPath);
 					copyStream(is, os);
 				} finally {
 					FileUtil.cleanupStream(is);
