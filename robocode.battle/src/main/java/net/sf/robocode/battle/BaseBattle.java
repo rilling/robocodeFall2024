@@ -148,31 +148,20 @@ public abstract class BaseBattle implements IBattle, Runnable {
 		URLJarCollector.gc();
 	}
 
-	public void waitTillStarted() {
+	/**
+	 *
+	 * @param waitForRunning == true -> waitTillStarted
+	 *                       false -> waitTillOver
+	 */
+	public void waitUntil(boolean waitForRunning) {
 		synchronized (isRunning) {
-			while (!isRunning.get()) {
+			while (isRunning.get() != waitForRunning) {
 				try {
 					isRunning.wait();
 				} catch (InterruptedException e) {
 					// Immediately reasserts the exception by interrupting the caller thread itself
 					Thread.currentThread().interrupt();
-
-					return; // Break out
-				}
-			}
-		}
-	}
-
-	public void waitTillOver() {
-		synchronized (isRunning) {
-			while (isRunning.get()) {
-				try {
-					isRunning.wait();
-				} catch (InterruptedException e) {
-					// Immediately reasserts the exception by interrupting the caller thread itself
-					Thread.currentThread().interrupt();
-
-					return; // Break out
+					return;
 				}
 			}
 		}
@@ -382,7 +371,7 @@ public abstract class BaseBattle implements IBattle, Runnable {
 		sendCommand(new AbortCommand());
 
 		if (waitTillEnd) {
-			waitTillOver();
+			waitUntil(false);
 		}
 	}
 

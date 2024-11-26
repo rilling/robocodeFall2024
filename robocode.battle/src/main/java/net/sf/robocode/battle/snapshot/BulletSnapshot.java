@@ -18,6 +18,7 @@ import robocode.control.snapshot.IBulletSnapshot;
 import robocode.util.Utils;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 
 /**
@@ -270,6 +271,14 @@ public final class BulletSnapshot implements java.io.Serializable, IXmlSerializa
 		}
 	}
 
+    private void expectAttribute(String attributeName, String shortcut, Consumer<String> consumer, XmlReader reader) {
+        reader.expect(attributeName, shortcut, new XmlReader.Attribute() {
+            public void read(String value) {
+                consumer.accept(value);
+            }
+        });
+    }
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -331,11 +340,8 @@ public final class BulletSnapshot implements java.io.Serializable, IXmlSerializa
 					}
 				});
 
-				reader.expect("color", "c", new XmlReader.Attribute() {
-					public void read(String value) {
-						snapshot.color = Long.valueOf(value.toUpperCase(), 16).intValue();
-					}
-				});
+				 expectAttribute("color", "c",
+                       value -> snapshot.color = Long.valueOf(value.toUpperCase(), 16).intValue(), reader);
 
 				reader.expect("isExplosion", new XmlReader.Attribute() {
 					public void read(String value) {

@@ -659,7 +659,6 @@ public final class Battle extends BaseBattle {
 	private void wakeupSerial(List<RobotPeer> robotsAtRandom) {
 		for (RobotPeer robotPeer : robotsAtRandom) {
 			if (robotPeer.isRunning()) {
-				// This call blocks until the robot's thread actually wakes up.
 				robotPeer.waitWakeup();
 
 				handleRobotWaiting(robotPeer, millisWait, nanoWait, currentTime);
@@ -670,7 +669,6 @@ public final class Battle extends BaseBattle {
 	private void wakeupParallel(List<RobotPeer> robotsAtRandom) {
 		for (RobotPeer robotPeer : robotsAtRandom) {
 			if (robotPeer.isRunning()) {
-				// This call blocks until the robot's thread actually wakes up.
 				robotPeer.waitWakeup();
 			}
 		}
@@ -690,6 +688,16 @@ public final class Battle extends BaseBattle {
 			} else {
 				robotPeer.waitSleeping(millisWait, nanoWait);
 			}
+		}
+	}
+
+	private void applyWaitSleeping(RobotPeer robotPeer) {
+		if (isDebugging() || robotPeer.isPaintEnabled()) {
+			robotPeer.waitSleeping(DEBUG_TURN_WAIT_MILLIS, 1);
+		} else if (currentTime == 1) {
+			robotPeer.waitSleeping(millisWait * 10, 1);
+		} else {
+			robotPeer.waitSleeping(millisWait, nanoWait);
 		}
 	}
 

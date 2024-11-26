@@ -14,6 +14,8 @@ import robocode.control.snapshot.IScoreSnapshot;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.function.Consumer;
+import java.util.Objects;
 
 
 /**
@@ -283,12 +285,7 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 			double myScore = getTotalScore() + getCurrentScore();
 			double hisScore = scoreSnapshot.getTotalScore() + scoreSnapshot.getCurrentScore();
 
-			if (myScore < hisScore) {
-				return -1;
-			}
-			if (myScore > hisScore) {
-				return 1;
-			}
+			return Double.compare(myScore, hisScore);
 		}
 		return 0;
 	}
@@ -335,7 +332,13 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 	ScoreSnapshot(String contestantName) {
 		this.name = contestantName;
 	}
-
+ private void expectAttribute(String attributeName, String shortcut, Consumer<String> consumer, XmlReader reader) {
+        reader.expect(attributeName, shortcut, new XmlReader.Attribute() {
+            public void read(String value) {
+                consumer.accept(value);
+            }
+        });
+    }
 	/**
 	 * {@inheritDoc}
 	 */
@@ -399,11 +402,8 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 						snapshot.totalThirds = Integer.parseInt(value);
 					}
 				});
-				reader.expect("currentScore", "c", new XmlReader.Attribute() {
-					public void read(String value) {
-						snapshot.currentScore = Double.parseDouble(value);
-					}
-				});
+				expectAttribute("currentScore", "c", value -> snapshot.currentScore = Double.parseDouble(value),
+                        reader);
 				reader.expect("currentSurvivalScore", "ss", new XmlReader.Attribute() {
 					public void read(String value) {
 						snapshot.currentSurvivalScore = Double.parseDouble(value);
@@ -433,46 +433,28 @@ public final class ScoreSnapshot implements Serializable, IXmlSerializable, ISco
 			}
 		});
 	}
-
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-
-		temp = Double.doubleToLongBits(currentBulletDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentBulletKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentRammingDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentRammingKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentSurvivalBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(currentSurvivalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		temp = Double.doubleToLongBits(totalBulletDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalBulletKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalFirsts;
-		temp = Double.doubleToLongBits(totalLastSurvivorBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalRammingDamageScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalRammingKillBonus);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(totalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalSeconds;
-		temp = Double.doubleToLongBits(totalSurvivalScore);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + totalThirds;
-		return result;
+		return Objects.hash(
+				currentBulletDamageScore,
+				currentBulletKillBonus,
+				currentRammingDamageScore,
+				currentRammingKillBonus,
+				currentScore,
+				currentSurvivalBonus,
+				currentSurvivalScore,
+				name,
+				totalBulletDamageScore,
+				totalBulletKillBonus,
+				totalFirsts,
+				totalLastSurvivorBonus,
+				totalRammingDamageScore,
+				totalRammingKillBonus,
+				totalScore,
+				totalSeconds,
+				totalSurvivalScore,
+				totalThirds
+		);
 	}
 
 	@Override
