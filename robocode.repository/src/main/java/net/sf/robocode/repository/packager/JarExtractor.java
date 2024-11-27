@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarEntry;
 import java.net.URLConnection;
@@ -60,7 +61,16 @@ public class JarExtractor {
 	}
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
-		File out = new File(dest, entry.getName());
+
+		// Validate and sanitize the entry name
+		Path destPath = dest.toPath().toRealPath();
+		Path outPath = destPath.resolve(entry.getName()).normalize();
+
+		if (!outPath.startsWith(destPath)) {
+			throw new IOException("Invalid path: " + entry.getName());
+		}
+
+		File out = outPath.toFile();
 
 		// Use the helper method to create the parent directory
 		ensureParentDirectoryExists(out);
