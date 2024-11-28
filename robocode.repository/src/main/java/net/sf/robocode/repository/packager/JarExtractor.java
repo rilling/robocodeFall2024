@@ -19,11 +19,24 @@ public class JarExtractor {
 
 	// Helper method to create parent directories
 	private static void ensureParentDirectoryExists(File file) {
-		File parentDirectory = new File(file.getParent());
-		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-			Logger.logError("Cannot create parent dir: " + parentDirectory);
+		try {
+			File parentDirectory = new File(file.getParentFile().getCanonicalPath());
+
+			File canonicalFile = file.getCanonicalFile();
+
+			if (!parentDirectory.equals(canonicalFile.getParentFile())) {
+				throw new SecurityException("Path traversal attempt detected: " + parentDirectory);
+			}
+
+			if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
+				Logger.logError("Cannot create parent dir: " + parentDirectory);
+			}
+		} catch (IOException e) {
+			Logger.logError("Error validating or creating parent directory: " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 	}
+
 
 	public static void extractJar(URL url) {
 		File dest = FileUtil.getRobotsDir();
