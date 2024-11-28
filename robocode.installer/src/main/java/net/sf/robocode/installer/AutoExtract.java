@@ -15,9 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -435,16 +433,42 @@ public class AutoExtract implements ActionListener {
             // Fix problem with .data starting with a underscore dir by
             // renaming files containing ".data/_" into ".data"
             if (robotsDataDir.exists()) {
-                File underScoreDir = new File(robotsDataDir, "_");
-                String[] list = underScoreDir.list();
+                Path underScoreDir = robotsDataDir.toPath().resolve("_");
 
-                if (list != null) {
-                    for (String fileName : list) {
-                        File file = new File(underScoreDir, fileName);
+                try {
+                    // Validate underscore directory existence
+                    if (Files.isDirectory(underScoreDir) && !Files.isSymbolicLink(underScoreDir)) {
+                        try (DirectoryStream<Path> stream = Files.newDirectoryStream(underScoreDir)) {
+                            for (Path file : stream) {
+                                // Ensure file is not a symbolic link
+                                if (Files.isSymbolicLink(file)) {
+                                    System.err.println("Symbolic link detected and skipped: " + file);
+                                    continue;
+                                }
 
-                        file.renameTo(new File(robotsDataDir, fileName));
+                                // Resolve the target file path
+                                Path targetPath = robotsDataDir.toPath().resolve(file.getFileName()).normalize();
+
+                                // Verify target path is within robotsDataDir
+                                if (!targetPath.startsWith(robotsDataDir.toPath().normalize())) {
+                                    throw new SecurityException("Path traversal attempt detected: " + file);
+                                }
+
+                                // Atomically move the file
+                                Files.move(file, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        }
+
+                        // Delete the underscore directory if empty
+                        try {
+                            Files.deleteIfExists(underScoreDir);
+                        } catch (DirectoryNotEmptyException e) {
+                            System.err.println("Directory not empty: " + underScoreDir);
+                        }
                     }
-                    underScoreDir.delete();
+                } catch (IOException | SecurityException e) {
+                    System.err.println("Error processing .data/_ directory: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
