@@ -462,23 +462,33 @@ public class AutoExtract implements ActionListener {
 
     private static void deleteOldLibs(File installDir) {
         File libs = new File(installDir, "libs");
-
         if (libs.exists()) {
-            File[] del = libs.listFiles(new FilenameFilter() {
-
-                public boolean accept(File dir, String name) {
-                    String test = name.toLowerCase();
-
-                    return test.endsWith(".jar") || test.endsWith(".dll");
+            try {
+                // Canonicalize the file path to prevent path traversal
+                String canonicalPath = libs.getCanonicalPath();
+                String basePath = new File(".").getCanonicalPath();
+                if (!canonicalPath.startsWith(basePath)) {
+                    throw new SecurityException("Potential Path Traversal Detected!");
                 }
-            });
+                File[] del = libs.listFiles(new FilenameFilter() {
+                    public boolean accept(File dir, String name) {
+                        String test = name.toLowerCase();
 
-            for (File d : del) {
-                if (!d.delete()) {
-                    System.err.println("Can't delete: " + d);
+                        return test.endsWith(".jar") || test.endsWith(".dll");
+                    }
+                });
+                if (del != null) {
+                    for (File d : del) {
+                        if (!d.delete()) {
+                            System.err.println("Can't delete: " + d);
+                        }
+                    }
                 }
+            } catch (IOException e) {
+                System.err.println("Error handling file paths: " + e.getMessage());
             }
         }
+
     }
 
     private static boolean deleteDir(File dir) {
