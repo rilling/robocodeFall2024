@@ -121,7 +121,8 @@ public class RecordManager implements IRecordManager {
     private void createTempFile() {
         try {
             if (tempFile == null) {
-                tempFile = File.createTempFile("robocode-battle-records", ".tmp");
+                tempFile = File.createTempFile("robocode-battle-records", ".tmp",
+                        new File("/mySecureDirectory"));
                 tempFile.deleteOnExit();
             } else {
                 deleteTempFile();
