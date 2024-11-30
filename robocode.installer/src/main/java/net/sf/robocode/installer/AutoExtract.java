@@ -510,7 +510,10 @@ public class AutoExtract implements ActionListener {
                     }
                 }
             }
-            return dir.delete();
+            if (dir.exists() && !dir.isDirectory() && !dir.getAbsolutePath().contains("..")) {
+                dir.delete();
+            }
+
         }
         return false;
     }
