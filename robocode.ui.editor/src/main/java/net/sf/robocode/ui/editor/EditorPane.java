@@ -307,6 +307,9 @@ public class EditorPane extends JTextPane {
 				onTabCharPressed(e.isShiftDown());
 				e.consume();
 				break;
+			default:
+				throw new IllegalArgumentException("Unexpected key pressed: " + e.getKeyCode());
+
 			}
 		}
 	}
