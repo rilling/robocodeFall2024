@@ -350,7 +350,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new byte[0];
 		}
 		byte[] res = new byte[len];
 
@@ -362,7 +362,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new int[0];
 		}
 		int[] res = new int[len];
 
@@ -376,7 +376,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new float[0];
 		}
 		float[] res = new float[len];
 
@@ -390,7 +390,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new char[0];
 		}
 		char[] res = new char[len];
 
@@ -404,7 +404,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new double[0];
 		}
 		double[] res = new double[len];
 
