@@ -119,10 +119,7 @@ public class FileTransfer {
 		try {
 			// Create connection
 			conn = connectToHttpInputConnection(new URL(url));
-			if (conn == null) {
-				throw new IOException("Could not open connection to: " + url);
-			}
-			
+
 			// Begin the download
 			final DownloadThread downloadThread = new DownloadThread(conn, filename);
 
