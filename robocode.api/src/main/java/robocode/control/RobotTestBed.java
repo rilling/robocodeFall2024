@@ -36,8 +36,8 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * The Robocode game engine instance used for this test.
      */
-    protected static IRobocodeEngine engine;
-    /**
+    static IRobocodeEngine engine;
+    /**`
      * The battlefield specification, which is the default.
      */
     protected final BattlefieldSpecification battleFieldSpec = new BattlefieldSpecification();
@@ -53,8 +53,8 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * The number of messages generated during this battle so far.
      */
-    protected static int messages = 0;
-    protected static String robotsPath;
+    static int messages = 0;
+    static String robotsPath;
 
     /**
      * True to specify that the position during each turn should be printed out.
