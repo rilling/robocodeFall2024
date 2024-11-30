@@ -54,7 +54,7 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
      * The number of messages generated during this battle so far.
      */
     static int messages = 0;
-    static String robotsPath;
+    protected static String robotsPath;
 
     /**
      * True to specify that the position during each turn should be printed out.
