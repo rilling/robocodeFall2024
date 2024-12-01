@@ -13,9 +13,8 @@ import java.io.File;
 import net.sf.robocode.test.helpers.RobocodeTestBed;
 import org.junit.Assert;
 import org.junit.Test;
-import robocode.control.RobotTestBed;
 import robocode.control.events.TurnEndedEvent;
-import java.lang.reflect.Field;
+
 
 
 /**
