@@ -8,10 +8,7 @@
 package net.sf.robocode.roborumble.util;
 
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 
@@ -33,8 +30,14 @@ public final class PropertiesUtil {
 			FileInputStream fis = null;
 
 			try {
-				fis = new FileInputStream(filename);
-				props.load(fis);
+				File file = sanitizeFilePath(filename);
+				if(file != null && file.exists()) {
+					fis = new FileInputStream(filename);
+					props.load(fis);
+				}
+				else {
+					System.err.println("Invalid or inaccessible file: " + filename);
+				}
 			} catch (IOException e) {
 				System.err.println("Could not load properties file: " + filename);
 			} finally {
@@ -48,6 +51,31 @@ public final class PropertiesUtil {
 			}
 		}
 		return props;
+	}
+
+	public static File sanitizeFilePath(String filename) {
+		try {
+			// Create a file object with the provided filename
+			File file = new File(filename);
+			String canonicalPath = file.getCanonicalPath();
+
+			// Check if there is any attempts at path traversal
+			if (canonicalPath.contains("..") || canonicalPath.contains(File.separator + ".")) {
+				System.err.println("Path traversal attempt detected: " + filename);
+				return null;
+			}
+
+			// If the path is safe, return the file
+			return file;
+		} catch (IOException e) {
+			System.err.println("Error normalizing the file path: " + filename);
+			return null;
+		}
+	}
+
+	// make sure the file is a properties file
+	public static boolean isValidFile(String fileName) {
+		return fileName.toLowerCase().endsWith(".properties");
 	}
 
 	/**
