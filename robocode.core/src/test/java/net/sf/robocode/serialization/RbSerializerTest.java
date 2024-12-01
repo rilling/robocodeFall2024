@@ -31,6 +31,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
+import static org.junit.Assert.assertArrayEquals;
+
 
 /**
  * @author Pavel Savara (original)
@@ -121,7 +123,7 @@ public class RbSerializerTest {
 		Assert.assertEquals(ec2.getTeamMessages().get(0).message[10], 10);
 		Assert.assertEquals(ec2.getTeamMessages().get(0).sender, "Foo");
 		Assert.assertEquals(ec2.getTeamMessages().get(0).recipient, "Bar");
-		Assert.assertEquals(ec2.getTeamMessages().get(1).message, null);
+		Assert.assertArrayEquals(ec2.getTeamMessages().get(1).message,new byte[0]);
 	}
 
 	@Test
