@@ -1283,7 +1283,6 @@ private void updateHeadingAndTurn(double turnAmount) {
     }
     currentCommands.setGunTurnRemaining(currentCommands.getGunTurnRemaining() - turnAmount);
 }
-
 	private void updateHeading() {
 		boolean normalizeHeading = true;
 

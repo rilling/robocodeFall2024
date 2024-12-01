@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarEntry;
 import java.net.URLConnection;
@@ -19,11 +20,24 @@ public class JarExtractor {
 
 	// Helper method to create parent directories
 	private static void ensureParentDirectoryExists(File file) {
-		File parentDirectory = new File(file.getParent());
-		if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
-			Logger.logError("Cannot create parent dir: " + parentDirectory);
+		try {
+			File parentDirectory = new File(file.getParentFile().getCanonicalPath());
+
+			File canonicalFile = file.getCanonicalFile();
+
+			if (!parentDirectory.equals(canonicalFile.getParentFile())) {
+				throw new SecurityException("Path traversal attempt detected: " + parentDirectory);
+			}
+
+			if (!parentDirectory.exists() && !parentDirectory.mkdirs()) {
+				Logger.logError("Cannot create parent dir: " + parentDirectory);
+			}
+		} catch (IOException e) {
+			Logger.logError("Error validating or creating parent directory: " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 	}
+
 
 	public static void extractJar(URL url) {
 		File dest = FileUtil.getRobotsDir();
@@ -60,7 +74,16 @@ public class JarExtractor {
 	}
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
-		File out = new File(dest, entry.getName());
+
+		// Validate and sanitize the entry name
+		Path destPath = dest.toPath().toRealPath();
+		Path outPath = destPath.resolve(entry.getName()).normalize();
+
+		if (!outPath.startsWith(destPath)) {
+			throw new IOException("Invalid path: " + entry.getName());
+		}
+
+		File out = outPath.toFile();
 
 		// Use the helper method to create the parent directory
 		ensureParentDirectoryExists(out);
