@@ -59,23 +59,23 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * True to specify that the position during each turn should be printed out.
      */
-    public static boolean isDumpingPositions = false;
+    public static final boolean isDumpingPositions = false;
     /**
      * True to specify that each turn should be printed out.
      */
-    public static boolean isDumpingTurns = false;
+    public static final boolean isDumpingTurns = false;
     /**
      * True to specify that Robot output should be printed out.
      */
-    public static boolean isDumpingOutput = true;
+    public static final boolean isDumpingOutput = true;
     /**
      * True to specify that error messages should be printed out.
      */
-    public static boolean isDumpingErrors = true;
+    public static final boolean isDumpingErrors = true;
     /**
      * True to specify that Robot messages should be printed out.
      */
-    public static boolean isDumpingMessages = true;
+    public static final boolean isDumpingMessages = true;
 
 
     /**
