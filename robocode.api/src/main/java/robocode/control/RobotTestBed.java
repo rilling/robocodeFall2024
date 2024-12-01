@@ -59,7 +59,7 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * Creating a getter for reading access for test cases
      */
-    public String getRobotsPath() {
+    protected String getRobotsPath() {
         return robotsPath;
     }
     /**
