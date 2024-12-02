@@ -71,8 +71,7 @@ public abstract class RobotSpecItem extends RepositoryItem implements IRobotSpec
 		if (getFullClassName() == null) {
 			return null;
 		}
-		final int index = getFullClassName().lastIndexOf('.');
-
+		int index = getFullClassName().lastIndexOf('.');
 		return (index >= 0) ? getFullClassName().substring(0, index) : null;
 	}
 
@@ -87,12 +86,8 @@ public abstract class RobotSpecItem extends RepositoryItem implements IRobotSpec
 		if (getFullClassName() == null) {
 			return null;
 		}
-		final int index = getFullClassName().lastIndexOf('.');
-
-		if (index == -1) {
-			return getFullClassName();
-		}
-		return getFullClassName().substring(index + 1);
+		String fullPackage = getFullPackage();
+		return (fullPackage != null) ? getFullClassName().substring(fullPackage.length() + 1) : getFullClassName();
 	}
 
 	public String getFullClassNameWithVersion() {

@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -112,32 +114,45 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 		JarEntry entry = jarIS.getNextJarEntry();
 		while (entry != null) {
 			String fullName = entry.getName();
-			String name = fullName.toLowerCase();
+
+            Path normalizedPath = Paths.get(fullName).normalize();
+            String sanitizedFullName = normalizedPath.toString();
+
+            Path targetDir = FileUtil.getRobotsDataDir().toPath();
+            Path targetFile = targetDir.resolve(sanitizedFullName).normalize();
+
+            if (!targetFile.startsWith(targetDir)) {
+                throw new SecurityException("Path traversal attempt detected: " + fullName);
+            }
+
+            String name = sanitizedFullName.toLowerCase();
 
 			if (!entry.isDirectory()) {
-				if (name.contains(".data/") && !name.contains(".robotcache/")) {
-					JarExtractor.extractFile(FileUtil.getRobotsDataDir(), jarIS, entry);
-				} else {
-					if (name.endsWith(".jar") || name.endsWith(".zip")) {
-						JarInputStream inner = null;
+                if (name.contains(".data/") && !name.contains(".robotcache/")) {
+                    JarExtractor.extractFile(FileUtil.getRobotsDataDir(), jarIS, entry);
+                } else {
+                    if (name.endsWith(".jar") || name.endsWith(".zip")) {
+                        JarInputStream inner = null;
 
-						try {
-							inner = new JarInputStream(jarIS);
-							readJarStream(repositoryItems, "jar:jar" + root + JarJar.SEPARATOR + fullName, inner);
-						} finally {
-							if (inner != null) {
-								inner.closeEntry();								
-							}
-						}
-					} else if (name.endsWith(".class")) {
-						if (mainClassPredicate.isMainClassBinary(fullName.substring(0, fullName.length() - 6))) {
-							createItem(repositoryItems, rootURL, entry);
-						}
-					} else {
-						createItem(repositoryItems, rootURL, entry);
-					}
-				}
-			}
+                        try {
+                            inner = new JarInputStream(jarIS);
+                            readJarStream(repositoryItems, "jar:jar" + root + JarJar.SEPARATOR + sanitizedFullName,
+                                    inner);
+                        } finally {
+                            if (inner != null) {
+                                inner.closeEntry();
+                            }
+                        }
+                    } else if (name.endsWith(".class")) {
+                        if (mainClassPredicate
+                                .isMainClassBinary(sanitizedFullName.substring(0, sanitizedFullName.length() - 6))) {
+                            createItem(repositoryItems, rootURL, entry);
+                        }
+                    } else {
+                        createItem(repositoryItems, rootURL, entry);
+                    }
+                }
+            }
 			entry = jarIS.getNextJarEntry();
 		}
 	}
