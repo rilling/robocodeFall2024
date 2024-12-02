@@ -123,12 +123,7 @@ public final class RbSerializer {
 		target.write(buffer.array());
 	}
 
-	public ByteBuffer serialize(byte type, Object object) throws IOException {
-		int length = sizeOf(type, object);
-
-		// header
-		ByteBuffer buffer = ByteBuffer.allocateDirect(SIZEOF_INT + SIZEOF_INT + SIZEOF_INT + length);
-
+	private ByteBuffer serializeBuffer(ByteBuffer buffer, byte type, Object object, int length) throws IOException {
 		buffer.putInt(BYTE_ORDER);
 		buffer.putInt(currentVersion);
 		buffer.putInt(length);
@@ -139,6 +134,15 @@ public final class RbSerializer {
 			throw new IOException("Serialization failed: bad size");
 		}
 		return buffer;
+	}
+
+	public ByteBuffer serialize(byte type, Object object) throws IOException {
+		int length = sizeOf(type, object);
+
+		// header
+		ByteBuffer buffer = ByteBuffer.allocateDirect(SIZEOF_INT + SIZEOF_INT + SIZEOF_INT + length);
+
+		return serializeBuffer(buffer, type, object, length);
 	}
 
 	public ByteBuffer serializeToBuffer(ByteBuffer buffer, byte type, Object object) throws IOException {
@@ -146,17 +150,9 @@ public final class RbSerializer {
 
 		buffer.limit(SIZEOF_INT + SIZEOF_INT + SIZEOF_INT + length);
 
-		buffer.putInt(BYTE_ORDER);
-		buffer.putInt(currentVersion);
-		buffer.putInt(length);
-
-		// body
-		serialize(buffer, type, object);
-		if (buffer.remaining() != 0) {
-			throw new IOException("Serialization failed: bad size");
-		}
-		return buffer;
+		return serializeBuffer(buffer, type, object, length);
 	}
+
 
 	public Object deserialize(InputStream source) throws IOException {
 		// header
@@ -354,7 +350,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new byte[0];
 		}
 		byte[] res = new byte[len];
 
@@ -366,7 +362,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new int[0];
 		}
 		int[] res = new int[len];
 
@@ -380,7 +376,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new float[0];
 		}
 		float[] res = new float[len];
 
@@ -394,7 +390,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new char[0];
 		}
 		char[] res = new char[len];
 
@@ -408,7 +404,7 @@ public final class RbSerializer {
 		final int len = buffer.getInt();
 
 		if (len == -1) {
-			return null;
+			return new double[0];
 		}
 		double[] res = new double[len];
 

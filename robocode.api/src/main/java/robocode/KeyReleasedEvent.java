@@ -88,14 +88,7 @@ public final class KeyReleasedEvent extends KeyEvent {
 
 		public void serialize(RbSerializer serializer, ByteBuffer buffer, Object object) {
 			KeyReleasedEvent obj = (KeyReleasedEvent) object;
-			java.awt.event.KeyEvent src = obj.getSourceEvent();
-
-			serializer.serialize(buffer, src.getKeyChar());
-			serializer.serialize(buffer, src.getKeyCode());
-			serializer.serialize(buffer, src.getKeyLocation());
-			serializer.serialize(buffer, src.getID());
-			serializer.serialize(buffer, src.getModifiersEx());
-			serializer.serialize(buffer, src.getWhen());
+			KeyTypedEvent.SerializableHelper.serialize(serializer, buffer, obj.getSourceEvent(), obj);
 		}
 
 		public Object deserialize(RbSerializer serializer, ByteBuffer buffer) {

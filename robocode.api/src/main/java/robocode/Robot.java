@@ -123,6 +123,14 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 		}
 	}
 
+	private double getHeading(double heading) {
+		if (peer != null) {
+			return heading * 180.0 / Math.PI;
+		}
+		uninitializedException();
+		return 0;
+	}
+
 	/**
 	 * Immediately moves your robot backward by distance measured in pixels.
 	 * <p>
@@ -166,12 +174,21 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @return the width of the current battlefield measured in pixels.
 	 */
 	public double getBattleFieldWidth() {
+		return getPeerValue(peer.getBattleFieldWidth());
+	}
+
+	private double getPeerValue(double value) {
 		if (peer != null) {
-			return peer.getBattleFieldWidth();
+			return value;
 		}
 		uninitializedException();
 		return 0; // never called
 	}
+
+
+
+
+
 
 	/**
 	 * Returns the height of the current battlefield measured in pixels.
@@ -179,11 +196,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @return the height of the current battlefield measured in pixels.
 	 */
 	public double getBattleFieldHeight() {
-		if (peer != null) {
-			return peer.getBattleFieldHeight();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getBattleFieldHeight());
 	}
 
 	/**
@@ -260,11 +273,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getY()
 	 */
 	public double getX() {
-		if (peer != null) {
-			return peer.getX();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getX());
 	}
 
 	/**
@@ -275,11 +284,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getX()
 	 */
 	public double getY() {
-		if (peer != null) {
-			return peer.getY();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getY());
 	}
 
 	/**
@@ -507,11 +512,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #fireBullet(double)
 	 */
 	public double getGunCoolingRate() {
-		if (peer != null) {
-			return peer.getGunCoolingRate();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getGunCoolingRate());
 	}
 
 	/**
@@ -526,11 +527,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getRadarHeading()
 	 */
 	public double getGunHeading() {
-		if (peer != null) {
-			return peer.getGunHeading() * 180.0 / Math.PI;
-		}
-		uninitializedException();
-		return 0; // never called
+		return getHeading(peer.getGunHeading());
 	}
 
 	/**
@@ -551,12 +548,10 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #fireBullet(double)
 	 */
 	public double getGunHeat() {
-		if (peer != null) {
-			return peer.getGunHeat();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getGunHeat());
 	}
+
+
 
 	/**
 	 * Returns the number of rounds in the current battle.
@@ -591,6 +586,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 		uninitializedException();
 		return 0; // never called
 	}
+
 
 	/**
 	 * Returns how many opponents that are left in the current round.
@@ -632,11 +628,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see #getGunHeading()
 	 */
 	public double getRadarHeading() {
-		if (peer != null) {
-			return peer.getRadarHeading() * 180.0 / Math.PI;
-		}
-		uninitializedException();
-		return 0; // never called
+		return getHeading(peer.getRadarHeading());
 	}
 
 	/**
@@ -682,11 +674,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @see Rules#MAX_VELOCITY
 	 */
 	public double getVelocity() {
-		if (peer != null) {
-			return peer.getVelocity();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getVelocity());
 	}
 
 	/**
@@ -1436,11 +1424,7 @@ public class Robot extends _Robot implements IInteractiveRobot, IPaintRobot, IBa
 	 * @return the robot's current energy.
 	 */
 	public double getEnergy() {
-		if (peer != null) {
-			return peer.getEnergy();
-		}
-		uninitializedException();
-		return 0; // never called
+		return getPeerValue(peer.getEnergy());
 	}
 
 	/**

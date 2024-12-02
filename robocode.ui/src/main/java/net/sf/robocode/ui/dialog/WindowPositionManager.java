@@ -61,15 +61,14 @@ public class WindowPositionManager implements ComponentListener {
 	public void componentHidden(ComponentEvent e) {}
 
 	public void componentMoved(ComponentEvent e) {
-		// Hack, because we cannot detect maximized frame in Java 1.3
-		if (e.getComponent().getBounds().getWidth() >= Toolkit.getDefaultToolkit().getScreenSize().width
-				|| e.getComponent().getBounds().getHeight() >= Toolkit.getDefaultToolkit().getScreenSize().height) {
-			return;
-		}
-		setWindowRect((Window) e.getComponent(), e.getComponent().getBounds());
+		componentWindowRect(e);
 	}
 
 	public void componentResized(ComponentEvent e) {
+		componentWindowRect(e);
+	}
+
+	private void componentWindowRect(ComponentEvent e) {
 		// Hack, because we cannot detect maximized frame in Java 1.3
 		if (e.getComponent().getBounds().getWidth() >= Toolkit.getDefaultToolkit().getScreenSize().width
 				|| e.getComponent().getBounds().getHeight() >= Toolkit.getDefaultToolkit().getScreenSize().height) {
