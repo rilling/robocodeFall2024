@@ -18,14 +18,11 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This class is helping with closing of robot .jar files when used with URL, URLConnection and useCaches=true
+ * This class helps with closing of robot .jar files when used with URL, URLConnection, and useCaches=true.
  * It is designed to close JarFiles opened and cached in SUN's JarFileFactory.
- * If we are not on SUN's JVM, we fall back to useCaches=false, to not lock the files.
- * Collection is now called after repository refresh and after battle ended.
- * Collection is disabled/postponed during running battle.
  * 
- * @author Pavel Savara (original)
- * @author Flemming N. Larsen (contributor)
+ * @author Pavel Savara
+ * @author Flemming N. Larsen
  */
 public class URLJarCollector {
 
@@ -67,7 +64,7 @@ public class URLJarCollector {
     }
 
     public static synchronized URLConnection openConnection(URL url) throws IOException {
-        validateURL(url); // Validate the input URL to prevent SSRF
+        validateURL(url); // Add URL validation to prevent SSRF
 
         final URLConnection urlConnection = url.openConnection();
 
@@ -86,7 +83,6 @@ public class URLJarCollector {
 
     public static synchronized void gc() {
         if (sunJVM) {
-            // Close all JarURLConnections if garbage collection is enabled
             if (enabled) {
                 synchronized (urlsToClean) {
                     for (URL url : urlsToClean) {
@@ -96,15 +92,12 @@ public class URLJarCollector {
                 }
             }
 
-            // Remove all cache entries to temporary jar cache files created
-            // for connections using the jarjar protocol that get stuck up.
             for (Iterator<?> it = fileCache.keySet().iterator(); it.hasNext();) {
                 Object urlJarFile = it.next();
 
                 final JarFile jarFile = (JarFile) fileCache.get(urlJarFile);
 
                 String filename = jarFile.getName();
-
                 filename = filename.substring(filename.lastIndexOf(File.separatorChar) + 1).toLowerCase();
 
                 if (filename.startsWith("jar_cache")) {
@@ -168,6 +161,11 @@ public class URLJarCollector {
         }
     }
 
+    /**
+     * Validates a given URL to mitigate SSRF vulnerabilities.
+     * @param url The URL to validate.
+     * @throws IOException If the URL is invalid or unsafe.
+     */
     private static void validateURL(URL url) throws IOException {
         if (url == null) {
             throw new IOException("URL cannot be null");
@@ -192,6 +190,11 @@ public class URLJarCollector {
         }
     }
 
+    /**
+     * Checks if a given host is a private IP address.
+     * @param host The host to check.
+     * @return true if the host is a private IP address; false otherwise.
+     */
     private static boolean isPrivateIPAddress(String host) {
         try {
             InetAddress inetAddress = InetAddress.getByName(host);
