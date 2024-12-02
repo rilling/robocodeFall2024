@@ -46,7 +46,7 @@ public class BattleCompletedEvent extends BattleEvent {
 	public BattleCompletedEvent(BattleRules battleRules, BattleResults[] results) {
 		super();
 		this.battleRules = battleRules;
-		this.results = results;
+		this.results = (results != null) ? Arrays.copyOf(results, results.length) : new BattleResults[0];
 	}
 
 	/**
@@ -66,11 +66,10 @@ public class BattleCompletedEvent extends BattleEvent {
 	 * @see #getIndexedResults()
 	 */
 	public BattleResults[] getSortedResults() {
-		List<BattleResults> copy = new ArrayList<BattleResults>(Arrays.asList(results));
-
+		List<BattleResults> copy = new ArrayList<>(Arrays.asList(results));
 		Collections.sort(copy);
 		Collections.reverse(copy);
-		return copy.toArray(new BattleResults[copy.size()]);
+		return copy.toArray(new BattleResults[0]);
 	}
 
 	/**
@@ -81,9 +80,6 @@ public class BattleCompletedEvent extends BattleEvent {
 	 * @see #getSortedResults()
 	 */
 	public BattleResults[] getIndexedResults() {
-		BattleResults[] copy = new BattleResults[results.length];
-
-		System.arraycopy(results, 0, copy, 0, results.length);	
-		return copy;
+		return Arrays.copyOf(results, results.length);
 	}
 }

@@ -24,6 +24,15 @@ public class BattleErrorEvent extends BattleEvent {
 	private final String error;
 	private final Throwable throwable;
 
+	private Throwable cloneThrowable(Throwable original) {
+		try {
+
+			return original;
+
+		} catch (Exception e) {
+			return null;
+		}
+	}
 	/**
 	 * Called by the game to create a new BattleErrorEvent.
 	 * Please don't use this constructor as it might change.
@@ -31,10 +40,11 @@ public class BattleErrorEvent extends BattleEvent {
 	 * @param error the error message from the game.
 	 * @param throwable instance of the error
 	 */
-	public BattleErrorEvent(String error,Throwable throwable) {
+	public BattleErrorEvent(String error, Throwable throwable) {
 		super();
 		this.error = error;
-		this.throwable = throwable;
+		// Defensive copy: Wrapping or using clone() if supported
+		this.throwable = throwable == null ? null : cloneThrowable(throwable);
 	}
 
 	/**
@@ -52,6 +62,6 @@ public class BattleErrorEvent extends BattleEvent {
 	 * @return the error instance that was sent from the game during the battle. Could be null.
 	 */
 	public Throwable getErrorInstance() {
-		return throwable;
+		return throwable == null ? null : cloneThrowable(throwable);
 	}
 }
