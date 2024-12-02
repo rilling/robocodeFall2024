@@ -33,6 +33,7 @@ import robocode.control.events.IBattleListener;
 
 import java.io.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -59,7 +60,8 @@ public class BattleManager implements IBattleManager {
 	private String battleFilename;
 	private String battlePath;
 
-	private int pauseCount = 0;
+	private final Object battleStateLock = new Object();
+	private final AtomicInteger pauseCount = new AtomicInteger(0);
 	private final AtomicBoolean isManagedTPS = new AtomicBoolean(false);
 
 	public BattleManager(ISettingsManager properties, IRepositoryManager repositoryManager, IHostManager hostManager, ICpuManager cpuManager, BattleEventDispatcher battleEventDispatcher, IRecordManager recordManager) { // NO_UCD (unused code)
@@ -74,19 +76,29 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void cleanup() {
-		if (battle != null) {
-			battle.waitTillOver();
-			battle.cleanup();
+		synchronized (battleStateLock) {
+			if (battle != null) {
+				battle.waitUntil(false);
+				battle.cleanup();
+				battle = null;
+			}
 		}
-		battle = null;
 	}
 
 	// Called when starting a new battle from GUI
 	public void startNewBattle(BattleProperties battleProperties, boolean waitTillOver, boolean enableCLIRecording) {
-		this.battleProperties = battleProperties;
-		final RobotSpecification[] robots = repositoryManager.loadSelectedRobots(battleProperties.getSelectedRobots());
+		synchronized (battleStateLock) {
+			stop(true);
+			this.battleProperties = battleProperties;
+			final RobotSpecification[] robots = repositoryManager.loadSelectedRobots(battleProperties.getSelectedRobots());
 
-		startNewBattleImpl(robots, waitTillOver, enableCLIRecording);
+			try {
+				startNewBattleImpl(robots, waitTillOver, enableCLIRecording);
+			} catch (Exception e) {
+				logError("Battle initialization failed: " + e.getMessage());
+				cleanup();
+			}
+		}
 	}
 
 	// Called from the RobocodeEngine
@@ -123,59 +135,61 @@ public class BattleManager implements IBattleManager {
 	}
 
 	private void startNewBattleImpl(RobotSpecification[] battlingRobotsList, boolean waitTillOver, boolean enableRecording) {
-		stop(true);
+		synchronized (battleStateLock) {
+			stop(true);
 
-		logMessage("Preparing battle...");
+			logMessage("Preparing battle...");
 
-		final boolean recording = (properties.getOptionsCommonEnableReplayRecording()
-				&& System.getProperty("TESTING", "none").equals("none"))
-						|| enableRecording;
+			final boolean recording = (properties.getOptionsCommonEnableReplayRecording()
+					&& System.getProperty("TESTING", "none").equals("none"))
+					|| enableRecording;
 
-		if (recording) {
-			recordManager.attachRecorder(battleEventDispatcher);
-		} else {
-			recordManager.detachRecorder();
-		}
+			if (recording) {
+				recordManager.attachRecorder(battleEventDispatcher);
+			} else {
+				recordManager.detachRecorder();
+			}
 
-		// resets seed for deterministic behavior of Random
-		final String seed = System.getProperty("RANDOMSEED", "none");
+			// resets seed for deterministic behavior of Random
+			final String seed = System.getProperty("RANDOMSEED", "none");
 
-		if (!seed.equals("none")) {
-			// init soon as it reads random
-			cpuManager.getCpuConstant();
+			if (!seed.equals("none")) {
+				// init soon as it reads random
+				cpuManager.getCpuConstant();
 
-			RandomFactory.resetDeterministic(Long.valueOf(seed));
-		}
+				RandomFactory.resetDeterministic(Long.valueOf(seed));
+			}
 
-		Battle realBattle = Container.createComponent(Battle.class);
-		realBattle.setup(battlingRobotsList, battleProperties, isPaused());
+			Battle realBattle = Container.createComponent(Battle.class);
+			realBattle.setup(battlingRobotsList, battleProperties, isPaused());
 
-		battle = realBattle;
+			battle = realBattle;
 
-		battleThread = new Thread(Thread.currentThread().getThreadGroup(), realBattle);
-		battleThread.setPriority(Thread.NORM_PRIORITY);
-		battleThread.setName("Battle Thread");
-		realBattle.setBattleThread(battleThread);
+			battleThread = new Thread(Thread.currentThread().getThreadGroup(), realBattle);
+			battleThread.setPriority(Thread.NORM_PRIORITY);
+			battleThread.setName("Battle Thread");
+			realBattle.setBattleThread(battleThread);
 
-		if (RobocodeProperties.isSecurityOn()) {
-			hostManager.addSafeThread(battleThread);
-		}
+			if (RobocodeProperties.isSecurityOn()) {
+				hostManager.addSafeThread(battleThread);
+			}
 
-		// Start the realBattle thread
-		battleThread.start();
+			// Start the realBattle thread
+			battleThread.start();
 
-		// Wait until the realBattle is running and ended.
-		// This must be done as a new realBattle could be started immediately after this one causing
-		// multiple realBattle threads to run at the same time, which must be prevented!
-		realBattle.waitTillStarted();
-		if (waitTillOver) {
-			realBattle.waitTillOver();
+			// Wait until the realBattle is running and ended.
+			// This must be done as a new realBattle could be started immediately after this one causing
+			// multiple realBattle threads to run at the same time, which must be prevented!
+			realBattle.waitUntil(true);
+			if (waitTillOver) {
+				realBattle.waitUntil(false);
+			}
 		}
 	}
 
 	public void waitTillOver() {
 		if (battle != null) {
-			battle.waitTillOver();
+			battle.waitUntil(false);
 		}
 	}
 
@@ -185,7 +199,7 @@ public class BattleManager implements IBattleManager {
 		}
 		logMessage("Preparing replay...");
 
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.stop(true);
 		}
 
@@ -290,7 +304,7 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void stop(boolean waitTillEnd) {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.stop(waitTillEnd);
 		}
 		if (hostManager != null && battleThread != null) {
@@ -309,7 +323,8 @@ public class BattleManager implements IBattleManager {
 	}
 
 	private boolean isPaused() {
-		return (pauseCount != 0);
+
+		return pauseCount.get() != 0;
 	}
 
 	public synchronized void togglePauseResumeBattle() {
@@ -321,8 +336,8 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void pauseBattle() {
-		if (++pauseCount == 1) {
-			if (battle != null && battle.isRunning()) {
+		if (pauseCount.incrementAndGet() == 1) {
+			if (battleIsRunning(battle)) {
 				battle.pause();
 			} else {
 				battleEventDispatcher.onBattlePaused(new BattlePausedEvent());
@@ -331,9 +346,9 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void pauseIfResumedBattle() {
-		if (pauseCount == 0) {
-			pauseCount++;
-			if (battle != null && battle.isRunning()) {
+		if (pauseCount.get() == 1) {
+			pauseCount.decrementAndGet();
+			if (battleIsRunning(battle)) {
 				battle.pause();
 			} else {
 				battleEventDispatcher.onBattlePaused(new BattlePausedEvent());
@@ -342,9 +357,9 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void resumeIfPausedBattle() {
-		if (pauseCount == 1) {
-			pauseCount--;
-			if (battle != null && battle.isRunning()) {
+		if (pauseCount.get() == 1) {
+			pauseCount.decrementAndGet();
+			if (battleIsRunning(battle)) {
 				battle.resume();
 			} else {
 				battleEventDispatcher.onBattleResumed(new BattleResumedEvent());
@@ -353,11 +368,12 @@ public class BattleManager implements IBattleManager {
 	}
 
 	public synchronized void resumeBattle() {
-		if (--pauseCount < 0) {
-			pauseCount = 0;
+		int count = pauseCount.decrementAndGet();
+		if (count < 0) {
+			pauseCount.set(0);
 			logError("SYSTEM: pause game bug!");
-		} else if (pauseCount == 0) {
-			if (battle != null && battle.isRunning()) {
+		} else if (count == 0) {
+			if (battleIsRunning(battle)) {
 				battle.resume();
 			} else {
 				battleEventDispatcher.onBattleResumed(new BattleResumedEvent());
@@ -369,38 +385,42 @@ public class BattleManager implements IBattleManager {
 	 * Steps for a single turn, then goes back to paused
 	 */
 	public synchronized void nextTurn() {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.step();
 		}
 	}
 
 	public synchronized void prevTurn() {
-		if (battle != null && battle.isRunning() && battle instanceof BattlePlayer) {
+		if (battleIsRunning(battle) && battle instanceof BattlePlayer) {
 			((BattlePlayer) battle).stepBack();
 		}
 	}
 
 	public synchronized void killRobot(int robotIndex) {
-		if (battle != null && battle.isRunning() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && battle instanceof Battle) {
 			((Battle) battle).killRobot(robotIndex);
 		}
 	}
 
 	public synchronized void setPaintEnabled(int robotIndex, boolean enable) {
-		if (battle != null && battle.isRunning()) {
+		if (battleIsRunning(battle)) {
 			battle.setPaintEnabled(robotIndex, enable);
 		}
 	}
 
 	public synchronized void setSGPaintEnabled(int robotIndex, boolean enable) {
-		if (battle != null && battle.isRunning() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && battle instanceof Battle) {
 			((Battle) battle).setSGPaintEnabled(robotIndex, enable);
 		}
 	}
 
 	public synchronized void sendInteractiveEvent(Event event) {
-		if (battle != null && battle.isRunning() && !isPaused() && battle instanceof Battle) {
+		if (battleIsRunning(battle) && !isPaused() && battle instanceof Battle) {
 			((Battle) battle).sendInteractiveEvent(event);
 		}
+	}
+
+	private static boolean battleIsRunning(IBattle battle) {
+		return battle != null && battle.isRunning();
 	}
 }
