@@ -70,7 +70,6 @@ public class JarExtractor {
 			Logger.logError("Blocked path traversal attempt: " + entry.getName());
 			throw new IOException("Path traversal detected: " + entry.getName());
 		}
-
 		// Ensure the parent directory exists
 		ensureParentDirectoryExists(out);
 
