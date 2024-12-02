@@ -16,6 +16,7 @@ import org.junit.Test;
 import robocode.control.events.TurnEndedEvent;
 
 
+
 /**
  * @author Flemming N. Larsen (original)
  */
@@ -42,7 +43,7 @@ public class TestFileWriteSize extends RobocodeTestBed {
 		super.onTurnEnded(event);
 
 		String out = event.getTurnSnapshot().getRobots()[0].getOutputStreamSnapshot();
-		String path = robotsPath;
+		String path = getRobotsPath();
 
 		if (File.separatorChar == '\\') {
 			out = out.replaceAll("[\\\\]", "/");

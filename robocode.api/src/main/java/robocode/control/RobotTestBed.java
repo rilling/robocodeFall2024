@@ -36,8 +36,8 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * The Robocode game engine instance used for this test.
      */
-    protected static IRobocodeEngine engine;
-    /**
+    static IRobocodeEngine engine;
+    /**`
      * The battlefield specification, which is the default.
      */
     protected final BattlefieldSpecification battleFieldSpec = new BattlefieldSpecification();
@@ -53,29 +53,35 @@ public abstract class RobotTestBed<R extends IBasicRobot> extends BattleAdaptor 
     /**
      * The number of messages generated during this battle so far.
      */
-    protected static int messages = 0;
-    protected static String robotsPath;
+    static int messages = 0;
+    static String robotsPath;
 
+    /**
+     * Creating a getter for reading access for test cases
+     */
+    protected String getRobotsPath() {
+        return robotsPath;
+    }
     /**
      * True to specify that the position during each turn should be printed out.
      */
-    public static boolean isDumpingPositions = false;
+    public static final boolean isDumpingPositions = false;
     /**
      * True to specify that each turn should be printed out.
      */
-    public static boolean isDumpingTurns = false;
+    public static final boolean isDumpingTurns = false;
     /**
      * True to specify that Robot output should be printed out.
      */
-    public static boolean isDumpingOutput = true;
+    public static final boolean isDumpingOutput = true;
     /**
      * True to specify that error messages should be printed out.
      */
-    public static boolean isDumpingErrors = true;
+    public static final boolean isDumpingErrors = true;
     /**
      * True to specify that Robot messages should be printed out.
      */
-    public static boolean isDumpingMessages = true;
+    public static final boolean isDumpingMessages = true;
 
 
     /**

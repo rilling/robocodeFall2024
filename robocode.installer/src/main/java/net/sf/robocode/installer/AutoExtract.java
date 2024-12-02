@@ -507,7 +507,7 @@ public class AutoExtract implements ActionListener {
 
     private static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
+            for (File file : (dir != null && dir.isDirectory() ? dir.listFiles() : new File[0])) {
                 if (file.isDirectory()) {
                     // Skip directories ending with ".data"
                     if (file.getName().endsWith(".data")) {
