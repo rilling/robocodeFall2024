@@ -100,7 +100,7 @@ public class FileUtil {
 		if (System.getProperty("os.name").toLowerCase().startsWith("windows") && filename.startsWith("file://")) {
 			filename = filename.substring(7);
 		}
-		if (filename.matches(".*\\s+?.*")) {
+		if (filename.contains(" ")) {
 			return '"' + filename + '"';
 		}
 		return filename;
