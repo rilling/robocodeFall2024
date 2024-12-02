@@ -1,5 +1,3 @@
-package net.sf.robocode.repository.packager;
-
 import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.io.URLJarCollector;
@@ -10,6 +8,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarEntry;
 import java.net.URLConnection;
@@ -60,9 +60,19 @@ public class JarExtractor {
 	}
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
+		// Get the file path from the jar entry
 		File out = new File(dest, entry.getName());
 
-		// Use the helper method to create the parent directory
+		// Normalize and validate the file path to prevent path traversal
+		Path destPath = dest.getCanonicalFile().toPath();
+		Path outPath = destPath.resolve(entry.getName()).normalize();
+
+		// Ensure that the file is inside the intended destination directory
+		if (!outPath.startsWith(destPath)) {
+			throw new IOException("Invalid file entry: " + entry.getName());
+		}
+
+		// Ensure parent directories exist
 		ensureParentDirectoryExists(out);
 
 		FileOutputStream fos = null;
