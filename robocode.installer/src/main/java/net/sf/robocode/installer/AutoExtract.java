@@ -528,7 +528,7 @@ public class AutoExtract implements ActionListener {
                         // Robocode won't create one, but just in case a user does...
                         if (file.getCanonicalFile().getParentFile().equals(dir.getCanonicalFile())) {
                             deleteDir(file);
-                            if (file.exists() && !file.delete()) {
+                            if (file.exists() && file.getCanonicalPath().startsWith(dir.getCanonicalPath()) && !file.delete()) {
                                 System.err.println("Can't delete: " + file);
                             }
                         } else {
