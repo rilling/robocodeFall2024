@@ -63,7 +63,7 @@ public class JarExtractor {
 		// Get the file path from the jar entry
 		File out = new File(dest, entry.getName());
 
-		// Normalize and validate the file path to prevent path traversal
+		// Normalize and validate  file path to prevent path traversal
 		Path destPath = dest.getCanonicalFile().toPath();
 		Path outPath = destPath.resolve(entry.getName()).normalize();
 
