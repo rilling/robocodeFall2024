@@ -9,8 +9,8 @@ public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) 
 		throw new IOException("Path traversal detected: " + entry.getName());
 	}
 
-	// Ensure the parent directory exists
-	ensureParentDirectoryExists(out);
+	// Ensure the parent directory exist
+	ensureParentDirectoryExists(out)
 
 	// Open streams to write the file contents
 	try (FileOutputStream fos = new FileOutputStream(out);
