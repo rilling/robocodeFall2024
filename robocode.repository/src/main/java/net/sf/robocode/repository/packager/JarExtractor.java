@@ -74,35 +74,36 @@ public class JarExtractor {
 	}
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
-
 		// Validate and sanitize the entry name
-		Path destPath = dest.toPath().toRealPath();
-		Path outPath = destPath.resolve(entry.getName()).normalize();
-
-		if (!outPath.startsWith(destPath)) {
-			throw new IOException("Invalid path: " + entry.getName());
+		String entryName = entry.getName();
+	
+		// Reject absolute paths or traversal attempts
+		if (entryName.contains("..") || entryName.startsWith("/") || entryName.startsWith("\\")) {
+			throw new IOException("Invalid path detected: " + entryName);
 		}
-
+	
+		// Resolve and normalize the output path
+		Path destPath = dest.toPath().toRealPath();
+		Path outPath = destPath.resolve(entryName).normalize();
+	
+		if (!outPath.startsWith(destPath)) {
+			throw new IOException("Path traversal attempt detected: " + entryName);
+		}
+	
 		File out = outPath.toFile();
-
+	
 		// Use the helper method to create the parent directory
 		ensureParentDirectoryExists(out);
-
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		byte[] buf = new byte[2048];
-
-		try {
-			fos = new FileOutputStream(out);
-			bos = new BufferedOutputStream(fos);
-
+	
+		// Write the file content
+		try (FileOutputStream fos = new FileOutputStream(out);
+			 BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+	
+			byte[] buf = new byte[2048];
 			int num;
-			while ((num = jarIS.read(buf, 0, 2048)) != -1) {
+			while ((num = jarIS.read(buf, 0, buf.length)) != -1) {
 				bos.write(buf, 0, num);
 			}
-		} finally {
-			FileUtil.cleanupStream(bos);
-			FileUtil.cleanupStream(fos);
 		}
 	}
-}
+	
