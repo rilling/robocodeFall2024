@@ -2,12 +2,7 @@ import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.io.URLJarCollector;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.jar.JarInputStream;
@@ -32,18 +27,20 @@ public class JarExtractor {
 		JarInputStream jarIS = null;
 
 		try {
-			final URLConnection con = URLJarCollector.openConnection(url);
+			if (dest == null || !dest.exists()) {
+				Logger.logError("Destination directory is invalid: " + dest);
+				return;
+			}
 
+			final URLConnection con = URLJarCollector.openConnection(url);
 			is = con.getInputStream();
 			bis = new BufferedInputStream(is);
 			jarIS = new JarInputStream(bis);
 
 			JarEntry entry = jarIS.getNextJarEntry();
-
 			while (entry != null) {
 				if (entry.isDirectory()) {
 					File dir = new File(dest, entry.getName());
-					// Use the helper method to create the parent directory
 					ensureParentDirectoryExists(dir);
 				} else {
 					extractFile(dest, jarIS, entry); // Process files using the existing extractFile method
@@ -51,7 +48,8 @@ public class JarExtractor {
 				entry = jarIS.getNextJarEntry();
 			}
 		} catch (IOException e) {
-			Logger.logError(e);
+			Logger.logError("Error while extracting jar: " + e.getMessage());
+			e.printStackTrace();
 		} finally {
 			FileUtil.cleanupStream(jarIS);
 			FileUtil.cleanupStream(bis);
@@ -63,12 +61,13 @@ public class JarExtractor {
 		// Get the file path from the jar entry
 		File out = new File(dest, entry.getName());
 
-		// Normalize and validate  file path to prevent path traversal
+		// Normalize and validate the file path to prevent path traversal
 		Path destPath = dest.getCanonicalFile().toPath();
 		Path outPath = destPath.resolve(entry.getName()).normalize();
 
 		// Ensure that the file is inside the intended destination directory
 		if (!outPath.startsWith(destPath)) {
+			Logger.logError("Invalid file entry (path traversal attempt): " + entry.getName());
 			throw new IOException("Invalid file entry: " + entry.getName());
 		}
 
@@ -87,6 +86,9 @@ public class JarExtractor {
 			while ((num = jarIS.read(buf, 0, 2048)) != -1) {
 				bos.write(buf, 0, num);
 			}
+		} catch (IOException e) {
+			Logger.logError("Error writing file: " + e.getMessage());
+			throw e;
 		} finally {
 			FileUtil.cleanupStream(bos);
 			FileUtil.cleanupStream(fos);
