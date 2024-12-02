@@ -31,15 +31,24 @@ import java.util.Properties;
  */
 public class RoboRumbleAtHome {
 
+    // Sanitize file path function - Made static
+    private static String sanitizeFilePath(String filePath) {
+        // Check for dangerous patterns like path traversal
+        if (filePath.contains("..") || filePath.contains("~")) {
+            throw new SecurityException("Invalid file path: " + filePath);
+        }
+        return filePath;
+    }
+
     public static void main(String[] args) {
 
         // Get the associated parameters file
         String paramsFileName;
         String envParams = System.getenv("PARAMS");
         if (args.length >= 1) {
-            paramsFileName = args[0];
+            paramsFileName = sanitizeFilePath(args[0]);
         } else if (envParams != null) {
-            paramsFileName = envParams;
+            paramsFileName = sanitizeFilePath(envParams);
         } else {
             paramsFileName = "./roborumble/roborumble.txt";
             System.out.println("No argument found specifying properties file. \"" + paramsFileName + "\" assumed.");
