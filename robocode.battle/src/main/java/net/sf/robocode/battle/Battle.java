@@ -248,7 +248,7 @@ public final class Battle extends BaseBattle {
 		parallelOn = System.getProperty("PARALLEL", "false").equals("true");
 		if (parallelOn) {
 			// how could robots share CPUs ?
-			double parallelConstant = robots.size() / Runtime.getRuntime().availableProcessors();
+			double parallelConstant = (double) robots.size() / Runtime.getRuntime().availableProcessors();
 
 			// four CPUs can't run two single threaded robot faster than two CPUs
 			if (parallelConstant < 1) {

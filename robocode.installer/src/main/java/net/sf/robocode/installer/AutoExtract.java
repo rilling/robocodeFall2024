@@ -799,25 +799,29 @@ public class AutoExtract implements ActionListener {
     private static boolean deleteFileAndParentDirsIfEmpty(File file) {
         boolean wasDeleted = false;
 
-        if (file != null && file.exists()) {
-            if (file.isDirectory()) {
-                wasDeleted = deleteDir(file);
-            } else {
-                wasDeleted = file.delete();
+        try {
+            if (file != null && file.getCanonicalPath().equals(file.getAbsolutePath())) {
+                if (file.isDirectory()) {
+                    wasDeleted = deleteDir(file);
+                } else {
+                    wasDeleted = file.delete();
 
-                File parent = file;
+                    File parent = file;
 
-                while (wasDeleted && (parent = parent.getParentFile()) != null) {
-                    // Delete parent directory, but only if it is empty
-                    File[] files = parent.listFiles();
+                    while (wasDeleted && (parent = parent.getParentFile()) != null) {
+                        // Delete parent directory, but only if it is empty
+                        File[] files = parent.listFiles();
 
-                    if (files != null && files.length == 0) {
-                        wasDeleted = deleteDir(parent);
-                    } else {
-                        wasDeleted = false;
+                        if (files != null && files.length == 0) {
+                            wasDeleted = deleteDir(parent);
+                        } else {
+                            wasDeleted = false;
+                        }
                     }
                 }
             }
+        } catch (IOException e) {
+            System.err.println("Error validating file path: " + e.getMessage());
         }
         return wasDeleted;
     }
