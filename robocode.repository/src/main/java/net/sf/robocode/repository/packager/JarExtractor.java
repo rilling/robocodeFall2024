@@ -1,3 +1,4 @@
+
 package net.sf.robocode.repository.packager;
 
 import net.sf.robocode.io.FileUtil;
@@ -60,26 +61,30 @@ public class JarExtractor {
 	}
 
 	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
+		// Create the file to be written to
 		File out = new File(dest, entry.getName());
 
-		// Use the helper method to create the parent directory
+		// Sanitize the path to prevent directory traversal
+		// Ensure the file is within the destination directory
+		if (!out.getCanonicalPath().startsWith(dest.getCanonicalPath())) {
+			Logger.logError("Blocked path traversal attempt: " + entry.getName());
+			throw new IOException("Path traversal detected: " + entry.getName());
+		}
+		// Ensure the parent directory exists
 		ensureParentDirectoryExists(out);
 
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		byte[] buf = new byte[2048];
+		try (FileOutputStream fos = new FileOutputStream(out);
+			 BufferedOutputStream bos = new BufferedOutputStream(fos)) {
 
-		try {
-			fos = new FileOutputStream(out);
-			bos = new BufferedOutputStream(fos);
-
+			byte[] buf = new byte[2048];
 			int num;
 			while ((num = jarIS.read(buf, 0, 2048)) != -1) {
 				bos.write(buf, 0, num);
 			}
-		} finally {
-			FileUtil.cleanupStream(bos);
-			FileUtil.cleanupStream(fos);
+		} catch (IOException e) {
+			Logger.logError("Error writing file: " + out.getAbsolutePath(), e);
+			throw e;
 		}
 	}
+
 }
