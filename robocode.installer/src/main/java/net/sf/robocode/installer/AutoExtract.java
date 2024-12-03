@@ -15,9 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -463,16 +461,42 @@ public class AutoExtract implements ActionListener {
             // Fix problem with .data starting with a underscore dir by
             // renaming files containing ".data/_" into ".data"
             if (robotsDataDir.exists()) {
-                File underScoreDir = new File(robotsDataDir, "_");
-                String[] list = underScoreDir.list();
+                Path underScoreDir = robotsDataDir.toPath().resolve("_");
 
-                if (list != null) {
-                    for (String fileName : list) {
-                        File file = new File(underScoreDir, fileName);
+                try {
+                    // Validate underscore directory existence
+                    if (Files.isDirectory(underScoreDir) && !Files.isSymbolicLink(underScoreDir)) {
+                        try (DirectoryStream<Path> stream = Files.newDirectoryStream(underScoreDir)) {
+                            for (Path file : stream) {
+                                // Ensure file is not a symbolic link
+                                if (Files.isSymbolicLink(file)) {
+                                    System.err.println("Symbolic link detected and skipped: " + file);
+                                    continue;
+                                }
 
-                        file.renameTo(new File(robotsDataDir, fileName));
+                                // Resolve the target file path
+                                Path targetPath = robotsDataDir.toPath().resolve(file.getFileName()).normalize();
+
+                                // Verify target path is within robotsDataDir
+                                if (!targetPath.startsWith(robotsDataDir.toPath().normalize())) {
+                                    throw new SecurityException("Path traversal attempt detected: " + file);
+                                }
+
+                                // Atomically move the file
+                                Files.move(file, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        }
+
+                        // Delete the underscore directory if empty
+                        try {
+                            Files.deleteIfExists(underScoreDir);
+                        } catch (DirectoryNotEmptyException e) {
+                            System.err.println("Directory not empty: " + underScoreDir);
+                        }
                     }
-                    underScoreDir.delete();
+                } catch (IOException | SecurityException e) {
+                    System.err.println("Error processing .data/_ directory: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
@@ -490,28 +514,38 @@ public class AutoExtract implements ActionListener {
 
     private static void deleteOldLibs(File installDir) {
         File libs = new File(installDir, "libs");
-
         if (libs.exists()) {
-            File[] del = libs.listFiles(new FilenameFilter() {
-
-                public boolean accept(File dir, String name) {
-                    String test = name.toLowerCase();
-
-                    return test.endsWith(".jar") || test.endsWith(".dll");
+            try {
+                // Canonicalize the file path to prevent path traversal
+                String canonicalPath = libs.getCanonicalPath();
+                String basePath = new File(".").getCanonicalPath();
+                if (!canonicalPath.startsWith(basePath)) {
+                    throw new SecurityException("Potential Path Traversal Detected!");
                 }
-            });
+                File[] del = libs.listFiles(new FilenameFilter() {
+                    public boolean accept(File dir, String name) {
+                        String test = name.toLowerCase();
 
-            for (File d : del) {
-                if (!d.delete()) {
-                    System.err.println("Can't delete: " + d);
+                        return test.endsWith(".jar") || test.endsWith(".dll");
+                    }
+                });
+                if (del != null) {
+                    for (File d : del) {
+                        if (!d.delete()) {
+                            System.err.println("Can't delete: " + d);
+                        }
+                    }
                 }
+            } catch (IOException e) {
+                System.err.println("Error handling file paths: " + e.getMessage());
             }
         }
+
     }
 
     private static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
-            for (File file : dir.listFiles()) {
+            for (File file : (dir != null && dir.isDirectory() ? dir.listFiles() : new File[0])) {
                 if (file.isDirectory()) {
                     // Skip directories ending with ".data"
                     if (file.getName().endsWith(".data")) {
@@ -522,7 +556,7 @@ public class AutoExtract implements ActionListener {
                         // Robocode won't create one, but just in case a user does...
                         if (file.getCanonicalFile().getParentFile().equals(dir.getCanonicalFile())) {
                             deleteDir(file);
-                            if (file.exists() && !file.delete()) {
+                            if (file.exists() && file.getCanonicalPath().startsWith(dir.getCanonicalPath()) && !file.delete()) {
                                 System.err.println("Can't delete: " + file);
                             }
                         } else {

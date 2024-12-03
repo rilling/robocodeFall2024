@@ -113,7 +113,8 @@ public class Version implements Comparable<Object> {
 	}
 
 	public boolean isBeta() {
-		return (version.matches(".*[bB]eta.*"));
+		return version.toLowerCase().contains("beta");
+		
 	}
 
 	public boolean isFinal() {

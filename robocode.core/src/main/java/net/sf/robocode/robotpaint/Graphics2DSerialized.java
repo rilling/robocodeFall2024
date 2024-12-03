@@ -1393,7 +1393,7 @@ public class Graphics2DSerialized extends Graphics2D implements IGraphicsProxy {
 
 	public byte[] readoutQueuedCalls() {
 		if (calls == null || calls.position() == 0) {
-			return null;
+			return new byte[0];
 		}
 		byte[] res = new byte[calls.position()];
 
