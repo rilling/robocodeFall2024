@@ -11,6 +11,7 @@ import static net.sf.robocode.io.Logger.logWarning;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Random;
  * @since 1.6.1
  */
 public class RandomFactory {
-	private static Random randomNumberGenerator = new Random();
+	private static Random randomNumberGenerator = new SecureRandom();
 
 	private static boolean warningNotSupportedLogged;
 	private static boolean isDeterministic;
