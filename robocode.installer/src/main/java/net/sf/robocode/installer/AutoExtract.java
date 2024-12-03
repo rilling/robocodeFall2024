@@ -363,7 +363,31 @@ public class AutoExtract implements ActionListener {
         }
     }
 
+    private static boolean validateAndCreateDirectory(File installDir, File baseDir) throws IOException {
+        // Resolve canonical paths
+        File canonicalInstallDir = installDir.getCanonicalFile();
+        File canonicalBaseDir = baseDir.getCanonicalFile();
+
+        // Check if the installDir is within the allowed base directory
+        if (!canonicalInstallDir.getPath().startsWith(canonicalBaseDir.getPath())) {
+            System.err.println("Invalid directory: " + installDir);
+            return false;
+        }
+
+        // Create directory if it doesn't exist
+        if (!canonicalInstallDir.exists() && !canonicalInstallDir.mkdirs()) {
+            System.err.println("Can't create directory: " + canonicalInstallDir);
+            return false;
+        }
+
+        return true;
+    }
+
     private static boolean install(File suggestedDir) {
+
+        // Define a base directory for installations
+        File baseDir = new File(System.getProperty("user.home"), "Robocode");
+
         // Verify that the Java version is version 6 (1.6.0) or newer
         if (JAVA_MAJOR_VERSION < 8) {
             String message = "Robocode requires Java 8 (1.8.0) or newer.\n"
@@ -415,8 +439,12 @@ public class AutoExtract implements ActionListener {
                     return false;
                 }
             }
-            if (!installDir.exists() && !installDir.mkdirs()) {
-                System.err.println("Can't create dir: " + installDir);
+            try {
+                if (!validateAndCreateDirectory(suggestedDir, baseDir)) {
+                    return false;
+                }
+            } catch (IOException e) {
+                System.err.println("Error resolving directory: " + e.getMessage());
                 return false;
             }
             deleteOldLibs(installDir);
@@ -544,7 +572,10 @@ public class AutoExtract implements ActionListener {
                     }
                 }
             }
-            return dir.delete();
+            if (dir.exists() && !dir.isDirectory() && !dir.getAbsolutePath().contains("..")) {
+                dir.delete();
+            }
+
         }
         return false;
     }

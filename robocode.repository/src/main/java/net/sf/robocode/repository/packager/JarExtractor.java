@@ -1,3 +1,4 @@
+
 package net.sf.robocode.repository.packager;
 
 import net.sf.robocode.io.FileUtil;
@@ -80,38 +81,31 @@ public class JarExtractor {
         }
     }
 
-    // Method to extract individual file entries
-    public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
-        // Validate and sanitize the entry name
-        String entryName = entry.getName();
+	public static void extractFile(File dest, JarInputStream jarIS, JarEntry entry) throws IOException {
+		// Create the file to be written to
+		File out = new File(dest, entry.getName());
 
-        // Reject absolute paths or traversal attempts
-        if (entryName.contains("..") || entryName.startsWith("/") || entryName.startsWith("\\")) {
-            throw new IOException("Invalid path detected: " + entryName);
-        }
+		// Sanitize the path to prevent directory traversal
+		// Ensure the file is within the destination directory
+		if (!out.getCanonicalPath().startsWith(dest.getCanonicalPath())) {
+			Logger.logError("Blocked path traversal attempt: " + entry.getName());
+			throw new IOException("Path traversal detected: " + entry.getName());
+		}
+		// Ensure the parent directory exists
+		ensureParentDirectoryExists(out);
 
-        // Resolve and normalize the output path
-        Path destPath = dest.toPath().toRealPath();
-        Path outPath = destPath.resolve(entryName).normalize();
+		try (FileOutputStream fos = new FileOutputStream(out);
+			 BufferedOutputStream bos = new BufferedOutputStream(fos)) {
 
-        if (!outPath.startsWith(destPath)) {
-            throw new IOException("Path traversal attempt detected: " + entryName);
-        }
+			byte[] buf = new byte[2048];
+			int num;
+			while ((num = jarIS.read(buf, 0, 2048)) != -1) {
+				bos.write(buf, 0, num);
+			}
+		} catch (IOException e) {
+			Logger.logError("Error writing file: " + out.getAbsolutePath(), e);
+			throw e;
+		}
+	}
 
-        File out = outPath.toFile();
-
-        // Use the helper method to create the parent directory
-        ensureParentDirectoryExists(out);
-
-        // Write the file content
-        try (FileOutputStream fos = new FileOutputStream(out);
-             BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-
-            byte[] buf = new byte[2048];
-            int num;
-            while ((num = jarIS.read(buf, 0, buf.length)) != -1) {
-                bos.write(buf, 0, num);
-            }
-        }
-    }
 }
